@@ -4,7 +4,7 @@ const { getNextUserId } = require('./userIdGenerator')
 const { todoSchema } = require('./todoSchema')
 const { status } = require('./status')
 const { push: addToDo, size: getTodosAmount, get: getTodos } = require('./todosCollection')
-const { validateCreateTodo, validateFilter } = require('./validators')
+const { validateCreateTodo, validateFilter, getSortFunction } = require('./validators')
 
 const PORT = 8496
 const app = express()
@@ -43,18 +43,6 @@ app.get('/todo/size', (req, res) => {
 
     return res.status(200).json(getTodosAmount(filter))
 })
-
-function getSortFunction(sortBy) {
-    if (!sortBy || sortBy == 'ID')
-        return (x, y) => x.id - y.id
-    
-    else if (sortBy == 'DUE_DATE')
-        return (x, y) => x.dueDate - y.dueDate
-        
-    else if (sortBy == 'TITLE')
-        return (x, y) => x.title - y.title
-        
-}
 
 app.get('/todo/content', (req, res) => {
     const filter = req.query?.status
