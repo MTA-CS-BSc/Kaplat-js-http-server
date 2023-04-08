@@ -3,8 +3,9 @@ const bodyParser = require('body-parser')
 const { getNextUserId } = require('./userIdGenerator')
 const { todoSchema } = require('./todoSchema')
 const { status } = require('./status')
-const { push: addToDo, size: getTodosAmount, get: getTodos } = require('./todosCollection')
-const { validateCreateTodo, validateFilter, getSortFunction } = require('./validators')
+const { push: addToDo, size: getTodosAmount, get: getTodos, find: findToDo, remove: removeToDo } = require('./todosCollection')
+const { validateCreateTodo, validateStatus } = require('./validators')
+const { getSortFunction, getStatusString } = require('./helpers')
 
 const PORT = 8496
 const app = express()
@@ -35,10 +36,32 @@ app.post('/todo', (req, res) => {
     return res.status(200).json(id)    
 })
 
+app.put('/todo', (req, res) => {
+    const id = req.query?.id
+    const newStatus = req.query?.status
+    const oldStatusString = getStatusString(todo.status)
+
+    if (!id)
+        return res.status(400).send('Invalid id!\n')
+
+    const todo = findToDo('id', parseInt(id))
+
+    if (!todo)
+        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
+
+    if (!validateStatus(newStatus, false))
+        return res.status(400)
+
+    todo.status = status[newStatus]
+
+    console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${oldStatusString}`)
+    return res.status(200).send(oldStatusString)
+})
+
 app.get('/todo/size', (req, res) => {
     const filter = req.query?.status
 
-    if (!filter || !validateFilter(filter))
+    if (!filter || !validateStatus(filter, true))
         return res.status(400).send('Status invalid!\n')
 
     return res.status(200).json(getTodosAmount(filter))
@@ -48,7 +71,7 @@ app.get('/todo/content', (req, res) => {
     const filter = req.query?.status
     const sortBy = req.query?.sortBy
 
-    if (!filter || !validateFilter(filter))
+    if (!filter || !validateStatus(filter, true))
         return res.status(400).send('Status invalid!\n')
 
     if (sortBy !== '' && !['DUE_DATE', 'ID', 'TITLE'].find(sortBy))
