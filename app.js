@@ -82,18 +82,7 @@ app.get('/todo/content', (req, res) => {
     console.log('GET invoked on /todo/content\n')
 
     return res.status(200).json(getTodos(filter).map(element => {
-        switch (element.status) {
-            case status.PENDING:
-                element.status = 'PENDING'
-                break;
-            case status.DONE:
-                element.status = 'DONE'
-                break;
-            case status.LATE:
-                element.status = 'LATE'
-                break;
-        }
-
+        element.status = getStatusString(element.status)
         return element
     }).sort(getSortFunction(sortBy)))
 })
