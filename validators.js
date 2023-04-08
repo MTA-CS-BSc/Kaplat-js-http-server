@@ -1,9 +1,8 @@
+const { status } = require('./status')
 const { find: findToDo } = require('./todosCollection')
 
 function validateTitle(title) {
-    if (!findToDo(title)) return true
-
-    return false
+    return (!findToDo(title))
 }
 
 function validateDueDate(dueDate) {
@@ -22,6 +21,11 @@ function validateCreateTodo(todo) {
     return errorMessage
 }
 
+function validateFilter(filter) {
+    return !(status[filter] == undefined)
+}
+
 module.exports = {
-    validateCreateTodo
+    validateCreateTodo,
+    validateFilter
 }
