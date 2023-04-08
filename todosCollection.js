@@ -16,7 +16,16 @@ function size(filter) {
 
     return todos.filter(element => element.status == status[filter]).length
 }
+
+function get(filter) {
+    if (filter == 'ALL')
+        return todos
+
+    return todos.filter(element => element.status == status[filter])
+}
+
 module.exports = {
+    get,
     push,
     find,
     size
