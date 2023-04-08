@@ -1,13 +1,13 @@
 const { status } = require('./status')
 
-const todos = []
+let todos = []
 
 function push(value) {
     todos.push(value)
 }
 
-function find(title) {
-    return todos.find(element => element.title == title)
+function find(fieldName, value) {
+    return todos.find(element => element[fieldName] == value)
 }
 
 function size(filter) {
@@ -17,16 +17,21 @@ function size(filter) {
     return todos.filter(element => element.status == status[filter]).length
 }
 
-function get(filter) {
-    if (filter == 'ALL')
+function get(filter = '') {
+    if (!filter || filter == 'ALL')
         return todos
 
     return todos.filter(element => element.status == status[filter])
+}
+
+function remove(todoId) {
+    todos = todos.filter(element => element.id !== todoId)
 }
 
 module.exports = {
     get,
     push,
     find,
+    remove,
     size
 }
