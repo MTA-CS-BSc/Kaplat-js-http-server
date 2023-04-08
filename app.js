@@ -14,6 +14,7 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 app.get('/todo/health', (req, res) => {
+    console.log(`GET invoked on /todo/health\n`)
     res.status(200).send('OK')
 })
 
@@ -31,7 +32,7 @@ app.post('/todo', (req, res) => {
         return res.status(409).json({errorMessage: errMessage})
 
     addToDo({...value})
-    console.log(`POST invoked, data added: ${JSON.stringify(value)}`)
+    console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
     return res.status(200).json(id)    
 })
@@ -47,14 +48,14 @@ app.put('/todo', (req, res) => {
     const todo = findToDo('id', parseInt(id))
 
     if (!todo)
-        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
+        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}\n`})
 
     if (!validateStatus(newStatus, false))
         return res.status(400)
 
     todo.status = status[newStatus]
 
-    console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${oldStatusString}`)
+    console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${oldStatusString}\n`)
     return res.status(200).send(oldStatusString)
 })
 
@@ -64,6 +65,7 @@ app.get('/todo/size', (req, res) => {
     if (!filter || !validateStatus(filter, true))
         return res.status(400).send('Status invalid!\n')
 
+    console.log(`GET invoked on /todo/size\n`)
     return res.status(200).json(getTodosAmount(filter))
 })
 
@@ -96,4 +98,4 @@ app.get('/todo/content', (req, res) => {
     }).sort(getSortFunction(sortBy)))
 })
 
-app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`))
+app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...\n`))
