@@ -2,7 +2,7 @@ const { status } = require('./status')
 const { find: findToDo } = require('./todosCollection')
 
 function validateTitle(title) {
-    return (!findToDo(title))
+    return (!findToDo('title', title))
 }
 
 function validateDueDate(dueDate) {
@@ -21,24 +21,18 @@ function validateCreateTodo(todo) {
     return errorMessage
 }
 
-function validateFilter(filter) {
-    return !(status[filter] == undefined)
-}
+function validateStatus(filter, withAllKey = false) {
+    const objectToCheck = withAllKey ? status[filter] : (Object.keys(status).reduce((acc, key) => {
+        if (key !== 'ALL')
+            acc[key] = status[key]
 
-function getSortFunction(sortBy) {
-    if (!sortBy || sortBy == 'ID')
-        return (x, y) => x.id - y.id
-    
-    else if (sortBy == 'DUE_DATE')
-        return (x, y) => x.dueDate - y.dueDate
-        
-    else if (sortBy == 'TITLE')
-        return (x, y) => x.title - y.title
-        
+        return acc
+    }, {}))
+
+    return !(objectToCheck == undefined)
 }
 
 module.exports = {
     validateCreateTodo,
-    validateFilter,
-    getSortFunction
+    validateStatus
 }
