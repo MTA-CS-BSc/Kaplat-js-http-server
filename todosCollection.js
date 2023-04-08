@@ -10,18 +10,18 @@ function find(fieldName, value) {
     return todos.find(element => element[fieldName] == value)
 }
 
-function size(filter) {
-    if (filter == 'ALL')
+function size(statusFilter) {
+    if (statusFilter == 'ALL')
         return todos.length
 
-    return todos.filter(element => element.status == status[filter]).length
+    return todos.filter(element => element.status == status[statusFilter]).length
 }
 
-function get(filter = '') {
-    if (!filter || filter == 'ALL')
+function get(statusFilter = '') {
+    if (!statusFilter || statusFilter == 'ALL')
         return todos
 
-    return todos.filter(element => element.status == status[filter])
+    return todos.filter(element => element.status == status[statusFilter])
 }
 
 function remove(todoId) {

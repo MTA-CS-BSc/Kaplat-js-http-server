@@ -21,13 +21,13 @@ function validateCreateTodo(todo) {
     return errorMessage
 }
 
-function validateStatus(filter, withAllKey = false) {
-    const objectToCheck = withAllKey ? status[filter] : (Object.keys(status).reduce((acc, key) => {
+function validateStatus(statusFilter, withAllKey = false) {
+    const objectToCheck = withAllKey ? status[statusFilter] : (Object.keys(status).reduce((acc, key) => {
         if (key !== 'ALL')
             acc[key] = status[key]
 
         return acc
-    }, {}))
+    }, {}))[statusFilter]
 
     return !(objectToCheck == undefined)
 }

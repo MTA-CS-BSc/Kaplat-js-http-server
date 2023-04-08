@@ -77,13 +77,13 @@ app.delete('/todo', (req, res) => {
 })
 
 app.get('/todo/size', (req, res) => {
-    const filter = req.query?.status
+    const statusFilter = req.query?.status
 
-    if (!filter || !validateStatus(filter, true))
+    if (!statusFilter || !validateStatus(statusFilter, true))
         return res.status(400).send('Status invalid!\n')
 
     console.log(`GET invoked on /todo/size\n`)
-    return res.status(200).json(getTodosAmount(filter))
+    return res.status(200).json(getTodosAmount(statusFilter))
 })
 
 app.get('/todo/content', (req, res) => {
