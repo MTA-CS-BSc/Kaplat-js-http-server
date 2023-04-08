@@ -40,12 +40,12 @@ app.post('/todo', (req, res) => {
 app.put('/todo', (req, res) => {
     const id = req.query?.id
     const newStatus = req.query?.status
-    const oldStatusString = getStatusString(todo.status)
 
     if (!id)
         return res.status(400).send('Invalid id!\n')
 
     const todo = findToDo('id', parseInt(id))
+    const oldStatusString = getStatusString(todo.status)
 
     if (!todo)
         return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}\n`})
