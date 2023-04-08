@@ -62,9 +62,12 @@ app.get('/todo/content', (req, res) => {
 
     if (!filter || !validateFilter(filter))
         return res.status(400).send('Status invalid!\n')
-    
+
+    if (sortBy !== '' && !['DUE_DATE', 'ID', 'TITLE'].find(sortBy))
+        return res.status(400).send('Sort by invalid!\n')
+
     console.log('GET invoked on /todo/content\n')
-    
+
     return res.status(200).json(getTodos(filter).map(element => {
         switch (element.status) {
             case status.PENDING:
