@@ -1,5 +1,6 @@
-export default {
-    PENDING: 0,
+module.exports = {
+    status: { PENDING: 0,
     LATE: 1,
     DONE: 2
+    }
 }
