@@ -87,4 +87,21 @@ app.get('/todo/content', (req, res) => {
     }).sort(getSortFunction(sortBy)))
 })
 
+app.delete('/todo', (req, res) => {
+    const id = req.query?.id
+
+    if (!id)
+        return res.status(400).send('Invalid id!\n')
+
+    const todo = findToDo('id', parseInt(id))
+
+    if (!todo)
+        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
+
+    removeToDo(parseInt(id))
+
+    console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
+    return res.status(200).send(getTodosAmount())
+})
+
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...\n`))
