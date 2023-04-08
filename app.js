@@ -44,11 +44,26 @@ app.get('/todo/size', (req, res) => {
     return res.status(200).json(getTodosAmount(filter))
 })
 
+function getSortFunction(sortBy) {
+    if (!sortBy || sortBy == 'ID')
+        return (x, y) => x.id - y.id
+    
+    else if (sortBy == 'DUE_DATE')
+        return (x, y) => x.dueDate - y.dueDate
+        
+    else if (sortBy == 'TITLE')
+        return (x, y) => x.title - y.title
+        
+}
+
 app.get('/todo/content', (req, res) => {
     const filter = req.query?.status
+    const sortBy = req.query?.sortBy
 
     if (!filter || !validateFilter(filter))
         return res.status(400).send('Status invalid!\n')
+    
+    console.log('GET invoked on /todo/content\n')
     
     return res.status(200).json(getTodos(filter).map(element => {
         switch (element.status) {
@@ -64,7 +79,7 @@ app.get('/todo/content', (req, res) => {
         }
 
         return element
-    }))
+    }).sort(getSortFunction(sortBy)))
 })
 
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...`))
