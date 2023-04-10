@@ -33,7 +33,7 @@ router.post('/', (req, res) => {
         decrementUserId()
         return res.status(409).json({errorMessage: errMessage})
     }
-    
+
     todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
@@ -91,7 +91,7 @@ router.get('/size', (req, res) => {
 
 router.get('/content', (req, res) => {
     const filter = req.query?.status
-    const sortBy = req.query?.sortBy
+    const sortBy = req.query?.sortBy ? req.query.sortBy : ''
 
     if (!filter || !validateStatus(filter, true))
         return res.status(400).send('Status invalid!\n')
@@ -101,10 +101,12 @@ router.get('/content', (req, res) => {
 
     console.log('GET invoked on /todo/content\n')
 
-    return res.status(200).json(todos.get(filter).map(element => {
-        element.status = getStatusString(element.status)
-        return element
-    }).sort(getSortFunction(sortBy)))
+    const filtered = [...todos.get(filter)].reduce((res, item) => {
+        res.push({...item, status: getStatusString(item.status)})
+        return res
+    }, [])
+    
+    return res.status(200).json(filtered.sort(getSortFunction(sortBy)))
 })
 
 module.exports = router
