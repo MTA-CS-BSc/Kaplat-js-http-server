@@ -48,13 +48,13 @@ router.put('/', (req, res) => {
         return res.status(400).send('Invalid id!\n')
 
     const todo = todos.find('id', parseInt(id))
-    const oldStatusString = getStatusString(todo.status)
+    const oldStatusString = getStatusString(todo?.status)
 
     if (!todo)
         return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}\n`})
 
     if (!validateStatus(newStatus, false))
-        return res.status(400)
+        return res.status(400).send('Invalid status!\n')
 
     todo.status = status[newStatus]
 
