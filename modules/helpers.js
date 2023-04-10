@@ -1,5 +1,3 @@
-
-
 function getSortFunction(sortBy) {
     if (!sortBy || sortBy == 'ID')
         return (x, y) => x.id - y.id
