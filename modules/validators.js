@@ -5,7 +5,7 @@ function validateTitle(todos, title) {
 }
 
 function validateDueDate(dueDate) {
-    return new Date(dueDate) <= Date.now()
+    return new Date(dueDate) > Date.now()
 }
 
 function validateCreateTodo(todos, todo) {
