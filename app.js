@@ -1,12 +1,8 @@
 const express = require('express')
-const bodyParser = require('body-parser')
 const todoRouter = require('./api/TodoRouter')
 
 const PORT = 8496
 const app = express()
-
-app.use(bodyParser.urlencoded({extended: false}))
-app.use(bodyParser.json())
 
 app.use('/todo', todoRouter)
 
