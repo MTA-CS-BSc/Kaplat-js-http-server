@@ -1,5 +1,4 @@
 const status = require('./status')
-const { find: findToDo } = require('./TodosCollection')
 
 function validateTitle(todos, title) {
     return (!todos.find('title', title))
