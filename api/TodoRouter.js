@@ -37,7 +37,7 @@ router.post('/', (req, res) => {
     todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
-    return res.status(200).json(id)
+    return res.status(200).send(id.toString())
 })
 
 router.put('/', (req, res) => {
@@ -58,7 +58,7 @@ router.put('/', (req, res) => {
 
     todo.status = status[newStatus]
 
-    console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${oldStatusString}\n`)
+    console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${newStatus}\n`)
     return res.status(200).send(oldStatusString)
 })
 
@@ -86,7 +86,7 @@ router.get('/size', (req, res) => {
         return res.status(400).send('Status invalid!\n')
 
     console.log(`GET invoked on /todo/size\n`)
-    return res.status(200).json(todos.size(statusFilter))
+    return res.status(200).send(todos.size(statusFilter).toString())
 })
 
 router.get('/content', (req, res) => {
