@@ -13,8 +13,8 @@ class TodosCollection {
         return this.todos.find(element => element[fieldName] == value)
     }
 
-    size(statusFilter) {
-        if (statusFilter == 'ALL')
+    size(statusFilter = '') {
+        if (!statusFilter || statusFilter == 'ALL')
             return this.todos.length
     
         return this.todos.filter(element => element.status == status[statusFilter]).length
