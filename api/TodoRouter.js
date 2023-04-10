@@ -3,7 +3,7 @@ const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
 
-const { getNextUserId } = require('../modules/UserIdGenerator')
+const { getNextUserId, decrementUserId } = require('../modules/UserIdGenerator')
 const { validateCreateTodo, validateStatus } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
 
@@ -22,14 +22,18 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (error)
+    if (error) {
+        decrementUserId()
         return res.status(400).json({errorMessage: error?.details[0]?.message})
+    }
 
     const errMessage = validateCreateTodo(todos, value)
 
-    if (errMessage)
+    if (errMessage) {
+        decrementUserId()
         return res.status(409).json({errorMessage: errMessage})
-
+    }
+    
     todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
