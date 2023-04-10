@@ -96,17 +96,17 @@ router.get('/content', (req, res) => {
     if (!filter || !validateStatus(filter, true))
         return res.status(400).send('Status invalid!\n')
 
-    if (sortBy !== '' && !['DUE_DATE', 'ID', 'TITLE'].find(sortBy))
+    if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))    
         return res.status(400).send('Sort by invalid!\n')
 
     console.log('GET invoked on /todo/content\n')
 
-    const filtered = [...todos.get(filter)].reduce((res, item) => {
+    const filtered = [...todos.get(filter)]
+    
+    return res.status(200).json(filtered.reduce((res, item) => {
         res.push({...item, status: getStatusString(item.status)})
         return res
-    }, [])
-    
-    return res.status(200).json(filtered.sort(getSortFunction(sortBy)))
+    }, []).sort(getSortFunction(sortBy)))
 })
 
 module.exports = router
