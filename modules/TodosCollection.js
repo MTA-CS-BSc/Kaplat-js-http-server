@@ -8,25 +8,25 @@ class TodosCollection {
     }
 
     find(fieldName, value) {
-        return todos.find(element => element[fieldName] == value)
+        return this.todos.find(element => element[fieldName] == value)
     }
 
     size(statusFilter) {
         if (statusFilter == 'ALL')
-            return todos.length
+            return this.todos.length
     
-        return todos.filter(element => element.status == status[statusFilter]).length
+        return this.todos.filter(element => element.status == status[statusFilter]).length
     }
 
     get(statusFilter = '') {
         if (!statusFilter || statusFilter == 'ALL')
-            return todos
+            return this.todos
     
-        return todos.filter(element => element.status == status[statusFilter])
+        return this.todos.filter(element => element.status == status[statusFilter])
     }
 
     remove(todoId) {
-        todos = todos.filter(element => element.id !== todoId)
+        this.todos = this.todos.filter(element => element.id !== todoId)
     }
 }
 
