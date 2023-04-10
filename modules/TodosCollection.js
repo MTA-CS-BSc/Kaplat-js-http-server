@@ -1,3 +1,5 @@
+const status = require('../modules/status')
+
 class TodosCollection {
     constructor() {
         this.todos = []
