@@ -1,18 +1,18 @@
-const { status } = require('./status')
-const { find: findToDo } = require('./todosCollection')
+const status = require('./status')
+const { find: findToDo } = require('./TodosCollection')
 
-function validateTitle(title) {
-    return (!findToDo('title', title))
+function validateTitle(todos, title) {
+    return (!todos.find('title', title))
 }
 
 function validateDueDate(dueDate) {
     return new Date(dueDate) <= Date.now()
 }
 
-function validateCreateTodo(todo) {
+function validateCreateTodo(todos, todo) {
     let errorMessage = ''
 
-    if (!validateTitle(todo.title))
+    if (!validateTitle(todos, todo.title))
         errorMessage = `Error: TODO with the title ${todo.title} already exists in the system`
 
     else if (!validateDueDate(todo.dueDate))

@@ -1,12 +1,19 @@
-const { getNextUserId } = require('../modules/userIdGenerator')
-const { todoSchema } = require('./todoSchema')
-const { status } = require('../modules/status')
-const { push: addToDo, size: getTodosAmount, get: getTodos, find: findToDo, remove: removeToDo } = require('../modules/todosCollection')
+const exp = require('express')
+const TodosCollection = require('../modules/TodosCollection')
+const todoSchema = require('./TodoSchema')
+const status = require('../modules/status')
+
+const { getNextUserId } = require('../modules/UserIdGenerator')
 const { validateCreateTodo, validateStatus } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
 
-const express = require('express')
-const router = express.Router()
+const router = exp.Router()
+const todos = new TodosCollection()
+
+router.get('/health', (req, res) => {
+    console.log(`GET invoked on /todo/health\n`)
+    res.status(200).send('OK')
+})
 
 router.post('/', (req, res) => {
     const id = getNextUserId()
@@ -16,12 +23,12 @@ router.post('/', (req, res) => {
     if (error)
         return res.status(400).json({errorMessage: error?.details[0]?.message})
 
-    const errMessage = validateCreateTodo(value)
+    const errMessage = validateCreateTodo(todos, value)
 
     if (errMessage)
         return res.status(409).json({errorMessage: errMessage})
 
-    addToDo({...value})
+    todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
     return res.status(200).json(id)
@@ -34,7 +41,7 @@ router.put('/', (req, res) => {
     if (!id)
         return res.status(400).send('Invalid id!\n')
 
-    const todo = findToDo('id', parseInt(id))
+    const todo = todos.find('id', parseInt(id))
     const oldStatusString = getStatusString(todo.status)
 
     if (!todo)
@@ -55,20 +62,15 @@ router.delete('/', (req, res) => {
     if (!id)
         return res.status(400).send('Invalid id!\n')
 
-    const todo = findToDo('id', parseInt(id))
+    const todo = todos.find('id', parseInt(id))
 
     if (!todo)
         return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
 
-    removeToDo(parseInt(id))
+    todos.remove(parseInt(id))
 
     console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
-    return res.status(200).send(getTodosAmount())
-})
-
-router.get('/health', (req, res) => {
-    console.log(`GET invoked on /todo/health\n`)
-    res.status(200).send('OK')
+    return res.status(200).send(todos.size())
 })
 
 router.get('/size', (req, res) => {
@@ -78,7 +80,7 @@ router.get('/size', (req, res) => {
         return res.status(400).send('Status invalid!\n')
 
     console.log(`GET invoked on /todo/size\n`)
-    return res.status(200).json(getTodosAmount(statusFilter))
+    return res.status(200).json(todos.size(statusFilter))
 })
 
 router.get('/content', (req, res) => {
@@ -93,7 +95,7 @@ router.get('/content', (req, res) => {
 
     console.log('GET invoked on /todo/content\n')
 
-    return res.status(200).json(getTodos(filter).map(element => {
+    return res.status(200).json(todos.get(filter).map(element => {
         element.status = getStatusString(element.status)
         return element
     }).sort(getSortFunction(sortBy)))
