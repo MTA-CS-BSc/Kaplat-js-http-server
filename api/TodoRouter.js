@@ -76,7 +76,7 @@ router.delete('/', (req, res) => {
     todos.remove(parseInt(id))
 
     console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
-    return res.status(200).send(todos.size())
+    return res.status(200).send(todos.size().toString())
 })
 
 router.get('/size', (req, res) => {
