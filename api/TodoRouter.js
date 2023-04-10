@@ -8,6 +8,8 @@ const { validateCreateTodo, validateStatus } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
 
 const router = exp.Router()
+router.use(exp.json())
+
 const todos = new TodosCollection()
 
 router.get('/health', (req, res) => {
