@@ -4,6 +4,11 @@ function getNextUserId() {
     return nextUserId++
 }
 
+function decrementUserId() {
+    nextUserId--;
+}
+
 module.exports = {
-  getNextUserId
+  getNextUserId,
+  decrementUserId
 }
