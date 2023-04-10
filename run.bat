@@ -1,1 +1,1 @@
-CALL node index.js
+CALL npm start
