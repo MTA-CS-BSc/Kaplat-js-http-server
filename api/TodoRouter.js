@@ -2,15 +2,13 @@ const exp = require('express')
 const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
-
 const { getNextUserId, decrementUserId } = require('../modules/UserIdGenerator')
 const { validateCreateTodo, validateStatus } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
 
+const todos = new TodosCollection()
 const router = exp.Router()
 router.use(exp.json())
-
-const todos = new TodosCollection()
 
 router.get('/health', (req, res) => {
     console.log(`GET invoked on /todo/health\n`)
