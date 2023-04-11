@@ -21,14 +21,8 @@ function validateCreateTodo(todos, todo) {
 }
 
 function validateStatus(statusFilter, withAllKey = false) {
-    const objectToCheck = withAllKey ? status[statusFilter] : (Object.keys(status).reduce((acc, key) => {
-        if (key !== 'ALL')
-            acc[key] = status[key]
-
-        return acc
-    }, {}))[statusFilter]
-
-    return !(objectToCheck == undefined)
+    return withAllKey ? Object.keys(status).includes(statusFilter)
+            : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
 module.exports = {
