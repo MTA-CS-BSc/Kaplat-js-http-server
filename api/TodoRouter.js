@@ -22,20 +22,20 @@ router.post('/', (req, res) => {
 
     if (error) {
         decrementUserId()
-        return res.status(400).json({errorMessage: error?.details[0]?.message})
+        res.status(400).json({errorMessage: error?.details[0]?.message})
     }
 
     const errMessage = validateCreateTodo(todos, value)
 
     if (errMessage) {
         decrementUserId()
-        return res.status(409).json({errorMessage: errMessage})
+        res.status(409).json({errorMessage: errMessage})
     }
 
     todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
-    return res.status(200).send(id.toString())
+    res.status(200).send(id.toString())
 })
 
 router.put('/', (req, res) => {
@@ -43,48 +43,48 @@ router.put('/', (req, res) => {
     const newStatus = req.query?.status
 
     if (!id)
-        return res.status(400).send('Invalid id!\n')
+        res.status(400).send('Invalid id')
 
     const todo = todos.find('id', parseInt(id))
     const oldStatusString = getStatusString(todo?.status)
 
     if (!todo)
-        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}\n`})
+        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
 
     if (!validateStatus(newStatus, false))
-        return res.status(400).send('Invalid status!\n')
+        res.status(400).send('Invalid status')
 
     todo.status = status[newStatus]
 
     console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${newStatus}\n`)
-    return res.status(200).send(oldStatusString)
+    res.status(200).send(oldStatusString)
 })
 
 router.delete('/', (req, res) => {
     const id = req.query?.id
 
     if (!id)
-        return res.status(400).send('Invalid id!\n')
+        res.status(400).send('Invalid id')
 
     const todo = todos.find('id', parseInt(id))
 
     if (!todo)
-        return res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
+        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`}) 
 
     todos.remove(parseInt(id))
 
     console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
-    return res.status(200).send(todos.size().toString())
+    res.status(200).send(todos.size().toString())
 })
 
 router.get('/size', (req, res) => {
     const statusFilter = req.query?.status
 
     if (!statusFilter || !validateStatus(statusFilter, true))
-        return res.status(400).send('Status invalid!\n')
+        res.status(400).send('Status invalid')
 
     console.log(`GET invoked on /todo/size\n`)
-    return res.status(200).send(todos.size(statusFilter).toString())
+    res.status(200).send(todos.size(statusFilter).toString())
 })
 
 router.get('/content', (req, res) => {
@@ -92,16 +92,16 @@ router.get('/content', (req, res) => {
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
 
     if (!filter || !validateStatus(filter, true))
-        return res.status(400).send('Status invalid!\n')
+        res.status(400).send('Status invalid!\n')
 
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))    
-        return res.status(400).send('Sort by invalid!\n')
+        res.status(400).send('Sort by invalid!\n')
 
     console.log('GET invoked on /todo/content\n')
 
     const filtered = [...todos.get(filter)]
     
-    return res.status(200).json(filtered.reduce((res, item) => {
+    res.status(200).json(filtered.reduce((res, item) => {
         res.push({...item, status: getStatusString(item.status)})
         return res
     }, []).sort(getSortFunction(sortBy)))
