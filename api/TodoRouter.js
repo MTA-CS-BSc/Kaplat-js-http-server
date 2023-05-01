@@ -35,7 +35,7 @@ router.post('/', (req, res) => {
     todos.push({...value})
     console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
 
-    res.status(200).send(id.toString())
+    res.status(200).json({result: id})
 })
 
 router.put('/', (req, res) => {
@@ -57,7 +57,7 @@ router.put('/', (req, res) => {
     todo.status = status[newStatus]
 
     console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${newStatus}\n`)
-    res.status(200).send(oldStatusString)
+    res.status(200).json({result: oldStatusString})
 })
 
 router.delete('/', (req, res) => {
@@ -74,7 +74,7 @@ router.delete('/', (req, res) => {
     todos.remove(parseInt(id))
 
     console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
-    res.status(200).send(todos.size().toString())
+    res.status(200).json({result: todos.size()})
 })
 
 router.get('/size', (req, res) => {
@@ -84,7 +84,7 @@ router.get('/size', (req, res) => {
         res.status(400).send('Status invalid')
 
     console.log(`GET invoked on /todo/size\n`)
-    res.status(200).send(todos.size(statusFilter).toString())
+    res.status(200).json({result: todos.size(statusFilter)})
 })
 
 router.get('/content', (req, res) => {
@@ -92,19 +92,19 @@ router.get('/content', (req, res) => {
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
 
     if (!filter || !validateStatus(filter, true))
-        res.status(400).send('Status invalid!\n')
+        res.status(400).send('Invalid status')
 
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))    
-        res.status(400).send('Sort by invalid!\n')
+        res.status(400).send('Invalid sort by')
 
     console.log('GET invoked on /todo/content\n')
 
     const filtered = [...todos.get(filter)]
     
-    res.status(200).json(filtered.reduce((res, item) => {
+    res.status(200).json({result: filtered.reduce((res, item) => {
         res.push({...item, status: getStatusString(item.status)})
         return res
-    }, []).sort(getSortFunction(sortBy)))
+    }, []).sort(getSortFunction(sortBy))})
 })
 
 module.exports = router
