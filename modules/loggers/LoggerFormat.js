@@ -1,11 +1,15 @@
-import { format } from "winston"
-const dateFormat = require('dateformat')
+const { format } = require("winston")
 
-export const getLoggerFormat = () => {
+const getLoggerFormat = () => {
     return format.combine(
+        format.metadata(),
         format.timestamp({
-          format: () => dateFormat(new Date(), "dd-mm-yyyy hh:MM:ss.l"),
+          format: 'DD-MM-YYYY HH:mm:ss.SSS'
         }),
-        format.printf(info => `${info.timestamp} ${info.level}: ${info.message} | request #${info.meta.requestId}`)
+        format.printf(info => `${info.timestamp} ${info.level.toString().toUpperCase()}: ${info.message} | request #${info.metadata.requestId}`)
     )
+}
+
+module.exports = {
+  getLoggerFormat
 }
