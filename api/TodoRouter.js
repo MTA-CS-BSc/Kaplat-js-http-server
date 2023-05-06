@@ -34,21 +34,27 @@ router.put('/', (req, res) => {
     const id = req.query?.id
     const newStatus = req.query?.status
 
-    // “Update TODO id [{todo ID}] state to {requested state}”
+    makeLog(todoLogger.info, `Update TODO id [${id}] state to ${newStatus}`, req.id)
+
     if (!id)
         res.status(400).send('Invalid id')
 
     const todo = todos.find('id', parseInt(id))
     const oldStatusString = getStatusString(todo?.status)
 
-    if (!todo)
-        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`})
+    if (!todo) {
+        const errMessage = `Error: no such TODO with id ${id}`
+        makeLog(todoLogger.error, errMessage, req.id)
 
+        res.status(404).json({errorMessage: errMessage})
+    }
+    
     if (!validateStatus(newStatus, false))
         res.status(400).send('Invalid status')
 
+    makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
     todo.status = status[newStatus]
-
+    
     res.status(200).json({result: oldStatusString})
 })
 
