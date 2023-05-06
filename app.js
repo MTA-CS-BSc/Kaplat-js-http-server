@@ -1,5 +1,6 @@
 const express = require('express')
 const todoRouter = require('./api/TodoRouter')
+const logsRouter = require('./api/LogsRouter')
 const { makeLogForRequest } = require('./modules/loggers/RequestLogger')
 
 const PORT = 8496
@@ -13,6 +14,7 @@ app.use((req, res, next) => {
 })
 
 app.use(makeLogForRequest)
-
 app.use('/todo', todoRouter)
+app.use('/logs', logsRouter)
+
 app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...\n`))

@@ -15,5 +15,6 @@ const makeLogForRequest = (req, res, next) => {
 }
 
 module.exports = {
-    makeLogForRequest
+    makeLogForRequest,
+    requestLogger
 }
