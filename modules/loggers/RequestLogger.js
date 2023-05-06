@@ -1,26 +1,19 @@
-const { createLogger, transports } = require("winston")
-const { getLoggerFormat } = require("./LoggerFormat")
+const { createLog, makeLogger } = require("./GenericLoggerModule")
 
-const requestLogger = createLogger({
-    format: getLoggerFormat(),
-    transports: [
-        new transports.Console(),
-        new transports.File({filename: 'logs/requests.log'})
-    ]
-})
+const requestLogger = makeLogger(true, 'logs/requests.log', 'info')
 
-const requestLog = (req, res, next) => {
-    requestLogger.info(`Incoming request | #${req.id} | resource: ${req.path} | HTTP Verb ${req.method}`, {requestId: req.id})
+const makeLogForRequest = (req, res, next) => {
+    createLog(requestLogger.info, `Incoming request | #${req.id} | resource: ${req.path} | HTTP Verb ${req.method}`, req.id)
     
     const start = Date.now()
     res.on('finish', () => {
       const duration = Date.now() - start
-      requestLogger.debug(`request ${req.id} duration: ${duration}ms`, { requestId: req.id })
+      createLog(requestLogger.debug, `request ${req.id} duration: ${duration}ms`, req.id)
     })
 
     next()
 }
 
 module.exports = {
-    requestLog
+    makeLogForRequest
 }
