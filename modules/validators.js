@@ -1,3 +1,7 @@
+const { decrementUserId } = require('./UserIdGenerator')
+const { getStatusString } = require('./helpers')
+const { makeLog } = require('./loggers/GenericLoggerModule')
+const { todoLogger } = require('./loggers/TodoLogger')
 const status = require('./status')
 
 function validateTitle(todos, title) {
@@ -25,7 +29,7 @@ function validateStatus(statusFilter, withAllKey = false) {
             : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
-const validateTodoSchemaAndDetails = (error, value, res, reqId) => {
+const validateTodoSchemaAndDetails = (error, value, res, reqId, todos) => {
     if (error) { // Error and value received from schema
         makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, reqId)
 
@@ -38,7 +42,7 @@ const validateTodoSchemaAndDetails = (error, value, res, reqId) => {
         const errMessage = validateCreateTodo(todos, value)
 
         if (errMessage) {
-            makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, reqId)
+            makeLog(todoLogger.error, errMessage, reqId)
     
             decrementUserId()
             res.status(409).json({errorMessage: errMessage})
@@ -63,8 +67,35 @@ const validateContentParams = (filter, sortBy, res) => {
     return true    
 }
 
+const validateUpdateParams = (todos, id, newStatus, res) => {
+    if (!id) {
+        res.status(400).send('Invalid id')
+        return {}
+    }
+
+    const todo = todos.find('id', parseInt(id))
+    const oldStatusString = getStatusString(todo?.status)
+
+    if (!todo) {
+        const errMessage = `Error: no such TODO with id ${id}`
+        makeLog(todoLogger.error, errMessage, req.id)
+
+        res.status(404).json({errorMessage: errMessage})
+        return {}
+    }
+    
+    if (!validateStatus(newStatus, false)) {
+        res.status(400).send('Invalid status')
+        return {}
+    }        
+
+    return { todo, oldStatusString }
+
+}
+
 module.exports = {
     validateStatus,
     validateTodoSchemaAndDetails,
-    validateContentParams
+    validateContentParams,
+    validateUpdateParams
 }

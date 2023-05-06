@@ -3,7 +3,7 @@ const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
 const { getNextUserId } = require('../modules/UserIdGenerator')
-const { validateStatus, validateTodoSchemaAndDetails, validateContentParams } = require('../modules/validators')
+const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams } = require('../modules/validators')
 const { getSortFunction, getStatusString, todoValid } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
 const { makeLog } = require('../modules/loggers/GenericLoggerModule')
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (validateTodoSchemaAndDetails(error, value, res, req.id)) {
+    if (validateTodoSchemaAndDetails(error, value, res, req.id, todos)) {
         todos.push({...value})
         res.status(200).json({result: id})
     }
@@ -36,29 +36,15 @@ router.put('/', (req, res) => {
 
     makeLog(todoLogger.info, `Update TODO id [${id}] state to ${newStatus}`, req.id)
 
-    if (!id) {
-        res.status(400).send('Invalid id')
-        return
-    }
-
-    const todo = todos.find('id', parseInt(id))
-    const oldStatusString = getStatusString(todo?.status)
-
-    if (!todo) {
-        const errMessage = `Error: no such TODO with id ${id}`
-        makeLog(todoLogger.error, errMessage, req.id)
-
-        res.status(404).json({errorMessage: errMessage})
-        return
-    }
+    const { todo, oldStatusString } = validateUpdateParams(todos, id, newStatus, res)
     
-    if (!validateStatus(newStatus, false)) {
-        res.status(400).send('Invalid status')
-        return
-    }        
-
     makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
+
+    console.log(todos.find('id', id))
+
     todo.status = status[newStatus]
+
+    console.log(todos.find('id', id))
 
     res.status(200).json({result: oldStatusString})
 })
