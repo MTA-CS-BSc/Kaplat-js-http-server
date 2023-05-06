@@ -49,7 +49,22 @@ const validateTodoSchemaAndDetails = (error, value, res) => {
     return true
 }
 
+const validateContentParams = (filter, sortBy, res) => {
+    if (!filter || !validateStatus(filter, true)) {
+        res.status(400).send('Invalid status')
+        return false
+    }
+        
+    if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy))) {
+        res.status(400).send('Invalid sort by')
+        return false
+    }    
+
+    return true    
+}
+
 module.exports = {
     validateStatus,
-    validateTodoSchemaAndDetails
+    validateTodoSchemaAndDetails,
+    validateContentParams
 }
