@@ -5,13 +5,14 @@ const status = require('../modules/status')
 const { getNextUserId, decrementUserId } = require('../modules/UserIdGenerator')
 const { validateCreateTodo, validateStatus } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
+const { todoLogger } = require('../modules/loggers/TodoLogger')
+const { makeLog } = require('../modules/loggers/GenericLoggerModule')
 
 const todos = new TodosCollection()
 const router = exp.Router()
 router.use(exp.json())
 
 router.get('/health', (req, res) => {
-    // console.log(`GET invoked on /todo/health\n`)
     res.status(200).send('OK')
 })
 
@@ -33,8 +34,6 @@ router.post('/', (req, res) => {
     }
 
     todos.push({...value})
-    // console.log(`POST invoked, data added: ${JSON.stringify(value)}\n`)
-
     res.status(200).json({result: id})
 })
 
@@ -56,7 +55,6 @@ router.put('/', (req, res) => {
 
     todo.status = status[newStatus]
 
-    // console.log(`PUT invoked on /todo; Updated todo with id ${id} to status ${newStatus}\n`)
     res.status(200).json({result: oldStatusString})
 })
 
@@ -73,7 +71,6 @@ router.delete('/', (req, res) => {
 
     todos.remove(parseInt(id))
 
-    // console.log(`DELETE invoked on /todo; Deleted todo with id ${id}`)
     res.status(200).json({result: todos.size()})
 })
 
@@ -83,7 +80,6 @@ router.get('/size', (req, res) => {
     if (!statusFilter || !validateStatus(statusFilter, true))
         res.status(400).send('Status invalid')
 
-    // console.log(`GET invoked on /todo/size\n`)
     res.status(200).json({result: todos.size(statusFilter)})
 })
 
@@ -96,8 +92,6 @@ router.get('/content', (req, res) => {
 
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))    
         res.status(400).send('Invalid sort by')
-
-    // console.log('GET invoked on /todo/content\n')
 
     const filtered = [...todos.get(filter)]
     
