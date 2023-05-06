@@ -2,8 +2,8 @@ const exp = require('express')
 const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
-const { getNextUserId, decrementUserId } = require('../modules/UserIdGenerator')
-const { validateCreateTodo, validateStatus } = require('../modules/validators')
+const { getNextUserId } = require('../modules/UserIdGenerator')
+const { validateStatus, validateTodoSchemaAndDetails } = require('../modules/validators')
 const { getSortFunction, getStatusString, todoValid } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
 const { makeLog } = require('../modules/loggers/GenericLoggerModule')
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (todoValid(error, value, res)) {
+    if (validateTodoSchemaAndDetails(error, value, res)) {
         todos.push({...value})
         res.status(200).json({result: id})
     }

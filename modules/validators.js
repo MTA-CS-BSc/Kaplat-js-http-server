@@ -25,7 +25,31 @@ function validateStatus(statusFilter, withAllKey = false) {
             : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
+const validateTodoSchemaAndDetails = (error, value, res) => {
+    if (error) { // Error and value received from schema
+        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
+
+        decrementUserId()
+        res.status(400).json({errorMessage: error?.details[0]?.message})
+        return false
+    }
+
+    else {
+        const errMessage = validateCreateTodo(todos, value)
+
+        if (errMessage) {
+            makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
+    
+            decrementUserId()
+            res.status(409).json({errorMessage: errMessage})
+            return false
+        }
+    }
+
+    return true
+}
+
 module.exports = {
-    validateCreateTodo,
-    validateStatus
+    validateStatus,
+    validateTodoSchemaAndDetails
 }
