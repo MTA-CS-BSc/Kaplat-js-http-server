@@ -3,7 +3,7 @@ const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
 const { getNextUserId } = require('../modules/UserIdGenerator')
-const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams } = require('../modules/validators')
+const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } = require('../modules/validators')
 const { getSortFunction, getStatusString, todoValid } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
 const { makeLog } = require('../modules/loggers/GenericLoggerModule')
@@ -52,14 +52,16 @@ router.delete('/', (req, res) => {
     if (!id)
         res.status(400).send('Invalid id')
 
-    const todo = todos.find('id', parseInt(id))
+    makeLog(todoLogger.info, `Removing todo id ${id}`, req.id)
 
-    if (!todo)
-        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`}) 
+    const { todo } = validateTodoId(res, id, todos, req.id)
 
-    todos.remove(parseInt(id))
-
-    res.status(200).json({result: todos.size()})
+    if (todo) {
+        todos.remove(parseInt(id))
+        makeLog(todoLogger.debug, `After removing todo id [${id}] there are ${todos.size()} TODOs in the system`)
+        
+        res.status(200).json({result: todos.size()})
+    }
 })
 
 router.get('/size', (req, res) => {

@@ -93,9 +93,22 @@ const validateUpdateParams = (todos, id, newStatus, res, redIq) => {
 
 }
 
+const validateTodoId = (res, id, todos, reqId) => {
+    const todo = todos.find('id', parseInt(id))
+    
+    if (!todo) {
+        makeLog(todoLogger.error, `Error: no such TODO with id ${id}`, reqId)
+        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`}) 
+        return {}
+    }
+    
+    return { todo }
+}
+
 module.exports = {
     validateStatus,
     validateTodoSchemaAndDetails,
     validateContentParams,
-    validateUpdateParams
+    validateUpdateParams,
+    validateTodoId
 }
