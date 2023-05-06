@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (validateTodoSchemaAndDetails(error, value, res)) {
+    if (validateTodoSchemaAndDetails(error, value, res, req.id)) {
         todos.push({...value})
         res.status(200).json({result: id})
     }
@@ -36,8 +36,10 @@ router.put('/', (req, res) => {
 
     makeLog(todoLogger.info, `Update TODO id [${id}] state to ${newStatus}`, req.id)
 
-    if (!id)
+    if (!id) {
         res.status(400).send('Invalid id')
+        return
+    }
 
     const todo = todos.find('id', parseInt(id))
     const oldStatusString = getStatusString(todo?.status)
@@ -47,14 +49,17 @@ router.put('/', (req, res) => {
         makeLog(todoLogger.error, errMessage, req.id)
 
         res.status(404).json({errorMessage: errMessage})
+        return
     }
     
-    if (!validateStatus(newStatus, false))
+    if (!validateStatus(newStatus, false)) {
         res.status(400).send('Invalid status')
+        return
+    }        
 
     makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
     todo.status = status[newStatus]
-    
+
     res.status(200).json({result: oldStatusString})
 })
 
