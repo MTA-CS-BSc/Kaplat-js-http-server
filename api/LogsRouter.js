@@ -13,7 +13,7 @@ router.get('/level', (req, res) => {
     
     if (validateLoggerName(loggers, loggerName)) {
         const logger = loggers.find(logger => logger.defaultMeta.name == loggerName)
-        res.status(200).json({result: logger.level.toUpperCase()})
+        res.status(200).send(logger.level.toUpperCase())
     }
 
     else
@@ -27,7 +27,7 @@ router.put('/level', (req, res) => {
     if (validateLoggerName(loggers, loggerName) && validateLoggerLevel(loggerLevel)) {
         const logger = loggers.find(logger => logger.defaultMeta.name == loggerName)
         logger.level = loggerLevel.toString().toLowerCase()
-        res.status(200).json({result: logger.level.toUpperCase()})
+        res.status(200).send(logger.level.toUpperCase())
     }
 
     else
