@@ -4,7 +4,7 @@ const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
 const { getNextUserId } = require('../modules/UserIdGenerator')
 const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } = require('../modules/validators')
-const { getSortFunction, getStatusString, todoValid } = require('../modules/helpers')
+const { getSortFunction, getStatusString } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
 const { makeLog } = require('../modules/loggers/GenericLoggerModule')
 
@@ -36,7 +36,7 @@ router.put('/', (req, res) => {
 
     makeLog(todoLogger.info, `Update TODO id [${id}] state to ${newStatus}`, req.id)
 
-    const { todo, oldStatusString } = validateUpdateParams(todos, id, newStatus, res)
+    const { todo, oldStatusString } = validateUpdateParams(todos, id, newStatus, res, req.id)
     
     if (todo) {
         makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)

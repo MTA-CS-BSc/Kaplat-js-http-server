@@ -67,29 +67,25 @@ const validateContentParams = (filter, sortBy, res) => {
     return true    
 }
 
-const validateUpdateParams = (todos, id, newStatus, res, redIq) => {
+const validateUpdateParams = (todos, id, newStatus, res, reqId) => {
     if (!id) {
         res.status(400).send('Invalid id')
-        return {}
+        return { todo: null, oldStatusString: '' }
     }
 
-    const todo = todos.find('id', parseInt(id))
+    const todo = validateTodoId(res, id, todos, reqId)
     const oldStatusString = getStatusString(todo?.status)
-
-    if (!todo) {
-        const errMessage = `Error: no such TODO with id ${id}`
-        makeLog(todoLogger.error, errMessage, redIq)
-
-        res.status(404).json({errorMessage: errMessage})
-        return {}
-    }
     
-    if (!validateStatus(newStatus, false)) {
-        res.status(400).send('Invalid status')
-        return {}
-    }        
+    if (todo) {
+        if (!validateStatus(newStatus, false)) {
+            res.status(400).send('Invalid status')
+            return { todo: null, oldStatusString: '' }
+        }        
+    
+        return { todo, oldStatusString }   
+    }
 
-    return { todo, oldStatusString }
+    return { todo: null, oldStatusString: ''}
 
 }
 
@@ -99,10 +95,10 @@ const validateTodoId = (res, id, todos, reqId) => {
     if (!todo) {
         makeLog(todoLogger.error, `Error: no such TODO with id ${id}`, reqId)
         res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`}) 
-        return {}
+        return null
     }
     
-    return { todo }
+    return todo
 }
 
 module.exports = {
