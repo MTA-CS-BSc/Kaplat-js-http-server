@@ -19,6 +19,9 @@ router.get('/health', (req, res) => {
 router.post('/', (req, res) => {
     const id = getNextUserId()
 
+    makeLog(todoLogger.info, `Creating new TODO with Title [${req.body.title}]`, req.id)
+    makeLog(todoLogger.debug, `Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
+
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
     if (error) {
@@ -32,14 +35,11 @@ router.post('/', (req, res) => {
 
     if (errMessage) {
         makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
-        
+
         decrementUserId()
         res.status(409).json({errorMessage: errMessage})
     }
     
-    makeLog(todoLogger.info, `Creating new TODO with Title [${value.title}]`, req.id)
-    makeLog(todoLogger.debug, `Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
-
     todos.push({...value})
     res.status(200).json({result: id})
 })
