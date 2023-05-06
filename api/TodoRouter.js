@@ -20,7 +20,7 @@ router.post('/', (req, res) => {
     const id = getNextUserId()
 
     makeLog(todoLogger.info, `Creating new TODO with Title [${req.body.title}]`, req.id)
-    makeLog(todoLogger.debug, `Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
+    makeLog(todoLogger.debug, `Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`, req.id)
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
@@ -34,6 +34,7 @@ router.put('/', (req, res) => {
     const id = req.query?.id
     const newStatus = req.query?.status
 
+    // “Update TODO id [{todo ID}] state to {requested state}”
     if (!id)
         res.status(400).send('Invalid id')
 
