@@ -22,6 +22,8 @@ router.post('/', (req, res) => {
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
     if (error) {
+        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
+
         decrementUserId()
         res.status(400).json({errorMessage: error?.details[0]?.message})
     }
@@ -29,6 +31,8 @@ router.post('/', (req, res) => {
     const errMessage = validateCreateTodo(todos, value)
 
     if (errMessage) {
+        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
+        
         decrementUserId()
         res.status(409).json({errorMessage: errMessage})
     }
