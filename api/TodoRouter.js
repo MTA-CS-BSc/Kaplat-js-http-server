@@ -80,7 +80,9 @@ router.get('/content', (req, res) => {
     const filter = req.query?.status
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
 
-    if (validateContentParams(filter, sortBy, res)) {
+    const errMessage = validateContentParams(filter, sortBy)
+
+    if (!errMessage) {
         makeLog(todoLogger.info, `Extracting todos content. Filter: ${filter} | Sorting by: ${sortBy ? sortBy: 'ID'}`, req.id)
         
         const filtered = [...todos.get(filter)]
@@ -90,7 +92,10 @@ router.get('/content', (req, res) => {
             res.push({...item, status: getStatusString(item.status)})
             return res
         }, []).sort(getSortFunction(sortBy))})
-    }    
+    }  
+    
+    else
+        res.status(400).send(errMessage)
 })
 
 module.exports = router

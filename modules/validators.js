@@ -30,41 +30,27 @@ function validateStatus(statusFilter, withAllKey = false) {
 }
 
 const validateTodoSchemaAndDetails = (error, value, res, reqId, todos) => {
-    if (error) { // Error and value received from schema
-        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, reqId)
+    const errMessage = error ? error.details[0]?.message : validateCreateTodo(todos, value)
+
+    if (errMessage) {
+        makeLog(todoLogger.error, errMessage, reqId)
 
         decrementUserId()
-        res.status(400).json({errorMessage: error?.details[0]?.message})
+        res.status(409).json({errorMessage: errMessage})
         return false
-    }
-
-    else {
-        const errMessage = validateCreateTodo(todos, value)
-
-        if (errMessage) {
-            makeLog(todoLogger.error, errMessage, reqId)
-    
-            decrementUserId()
-            res.status(409).json({errorMessage: errMessage})
-            return false
-        }
     }
 
     return true
 }
 
-const validateContentParams = (filter, sortBy, res) => {
-    if (!filter || !validateStatus(filter, true)) {
-        res.status(400).send('Invalid status')
-        return false
-    }
+const validateContentParams = (filter, sortBy) => {
+    if (!filter || !validateStatus(filter, true))
+        return 'Invalid status'
         
-    if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy))) {
-        res.status(400).send('Invalid sort by')
-        return false
-    }    
+    if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))
+        return 'Invalid sort by'
 
-    return true    
+    return ''
 }
 
 const validateUpdateParams = (todos, id, newStatus, res, reqId) => {
