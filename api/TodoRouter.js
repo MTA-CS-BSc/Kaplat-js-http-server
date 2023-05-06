@@ -34,6 +34,8 @@ router.post('/', (req, res) => {
     }
     
     makeLog(todoLogger.info, `Creating new TODO with Title [${value.title}]`, req.id)
+    makeLog(todoLogger.debug, `Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
+
     todos.push({...value})
     res.status(200).json({result: id})
 })
