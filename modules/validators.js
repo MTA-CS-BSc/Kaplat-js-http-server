@@ -104,10 +104,14 @@ const validateTodoId = (res, id, todos, reqId) => {
 const validateLoggerName = (loggers, loggerName) => {
     const foundLogger = loggers.find(logger => logger.defaultMeta.name == loggerName)
 
-    if (!loggerName || foundLogger)
+    if (!loggerName || !foundLogger)
         return false
 
     return true
+}
+
+const validateLoggerLevel = (loggerLevel) => {
+    return ['ERROR', 'INFO', 'DEBUG'].includes(loggerLevel)
 }
 
 module.exports = {
@@ -116,5 +120,6 @@ module.exports = {
     validateContentParams,
     validateUpdateParams,
     validateTodoId,
-    validateLoggerName
+    validateLoggerName,
+    validateLoggerLevel
 }
