@@ -39,7 +39,7 @@ router.put('/', (req, res) => {
     const { todo, oldStatusString } = validateUpdateParams(todos, id, newStatus, res, req.id)
     
     if (todo) {
-        makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
+        makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`, req.id)
         todo.status = status[newStatus]
     
         res.status(200).json({result: oldStatusString})
