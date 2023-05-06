@@ -32,7 +32,8 @@ router.post('/', (req, res) => {
         decrementUserId()
         res.status(409).json({errorMessage: errMessage})
     }
-
+    
+    makeLog(todoLogger.info, `Creating new TODO with Title [${value.title}]`, req.id)
     todos.push({...value})
     res.status(200).json({result: id})
 })
