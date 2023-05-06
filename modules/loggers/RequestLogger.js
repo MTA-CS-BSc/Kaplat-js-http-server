@@ -1,6 +1,6 @@
 const { createLog, makeLogger } = require("./GenericLoggerModule")
 
-const requestLogger = makeLogger(true, 'logs/requests.log', 'info')
+const requestLogger = makeLogger(true, 'logs/requests.log', 'info', 'request-logger')
 
 const makeLogForRequest = (req, res, next) => {
     createLog(requestLogger.info, `Incoming request | #${req.id} | resource: ${req.path} | HTTP Verb ${req.method}`, req.id)

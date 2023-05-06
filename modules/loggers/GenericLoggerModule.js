@@ -26,9 +26,10 @@ const createTransportsArray = (isConsole = true, fileName = '') => {
   return transportsArray
 }
 
-const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info') => {
+const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info', loggerName = '') => {
     return createLogger({
       level: defaultLevel,
+      defaultMeta: { name: loggerName },
       format: getLoggerFormat(),
       transports: [...createTransportsArray(isConsole, fileName)]})
 }
