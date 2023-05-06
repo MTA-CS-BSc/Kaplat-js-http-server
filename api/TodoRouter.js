@@ -4,7 +4,7 @@ const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
 const { getNextUserId, decrementUserId } = require('../modules/UserIdGenerator')
 const { validateCreateTodo, validateStatus } = require('../modules/validators')
-const { getSortFunction, getStatusString } = require('../modules/helpers')
+const { getSortFunction, getStatusString, todoValid } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
 const { makeLog } = require('../modules/loggers/GenericLoggerModule')
 
@@ -24,24 +24,10 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (error) {
-        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
-
-        decrementUserId()
-        res.status(400).json({errorMessage: error?.details[0]?.message})
+    if (todoValid(error, value, res)) {
+        todos.push({...value})
+        res.status(200).json({result: id})
     }
-
-    const errMessage = validateCreateTodo(todos, value)
-
-    if (errMessage) {
-        makeLog(todoLogger.error, `Error: ${error?.details[0]?.message}`, req.id)
-
-        decrementUserId()
-        res.status(409).json({errorMessage: errMessage})
-    }
-    
-    todos.push({...value})
-    res.status(200).json({result: id})
 })
 
 router.put('/', (req, res) => {
@@ -87,6 +73,7 @@ router.get('/size', (req, res) => {
     if (!statusFilter || !validateStatus(statusFilter, true))
         res.status(400).send('Status invalid')
 
+    makeLog(todosLogger.info, `Total TODOs count for state ${getStatusString(statusFilter)} is ${todos.size(statusFilter)}`)
     res.status(200).json({result: todos.size(statusFilter)})
 })
 
