@@ -73,8 +73,10 @@ router.get('/size', (req, res) => {
     if (!statusFilter || !validateStatus(statusFilter, true))
         res.status(400).send('Status invalid')
 
-    makeLog(todosLogger.info, `Total TODOs count for state ${getStatusString(statusFilter)} is ${todos.size(statusFilter)}`)
-    res.status(200).json({result: todos.size(statusFilter)})
+    else {
+        makeLog(todoLogger.info, `Total TODOs count for state ${statusFilter} is ${todos.size(statusFilter)}`, req.id)
+        res.status(200).json({result: todos.size(statusFilter)})    
+    }
 })
 
 router.get('/content', (req, res) => {
