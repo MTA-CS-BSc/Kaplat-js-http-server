@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
-    if (validateTodoSchemaAndDetails(error, value, res, req.id, todos)) {
+    if (validateTodoSchemaAndDetails({error, value, res, reqId: req.id, todos})) {
         todos.push({...value})
         res.status(200).json({result: id})
     }
@@ -36,7 +36,7 @@ router.put('/', (req, res) => {
 
     makeLog(todoLogger.info, `Update TODO id [${id}] state to ${newStatus}`, req.id)
 
-    const { todo, oldStatusString } = validateUpdateParams(todos, id, newStatus, res, req.id)
+    const { todo, oldStatusString } = validateUpdateParams({todos, id, newStatus, res, reqId: req.id})
     
     if (todo) {
         makeLog(todoLogger.debug, `Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`, req.id)
@@ -54,7 +54,7 @@ router.delete('/', (req, res) => {
 
     makeLog(todoLogger.info, `Removing todo id ${id}`, req.id)
 
-    const todo = validateTodoId(res, id, todos, req.id)
+    const todo = validateTodoId({res, id, todos, reqId: req.id})
 
     if (todo) {
         todos.remove(parseInt(id))

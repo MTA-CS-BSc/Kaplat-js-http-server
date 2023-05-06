@@ -29,7 +29,8 @@ function validateStatus(statusFilter, withAllKey = false) {
             : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
-const validateTodoSchemaAndDetails = (error, value, res, reqId, todos) => {
+const validateTodoSchemaAndDetails = (props) => {
+    const { error, value, res, reqId, todos } = props
     const errMessage = error ? error.details[0]?.message : validateCreateTodo(todos, value)
 
     if (errMessage) {
@@ -53,13 +54,15 @@ const validateContentParams = (filter, sortBy) => {
     return ''
 }
 
-const validateUpdateParams = (todos, id, newStatus, res, reqId) => {
+const validateUpdateParams = (props) => {
+    const { todos, id, newStatus, res, reqId } = props
+
     if (!id) {
         res.status(400).send('Invalid id')
         return { todo: null, oldStatusString: '' }
     }
 
-    const todo = validateTodoId(res, id, todos, reqId)
+    const todo = validateTodoId({res, id, todos, reqId})
     const oldStatusString = getStatusString(todo?.status)
     
     if (todo) {
@@ -75,7 +78,8 @@ const validateUpdateParams = (todos, id, newStatus, res, reqId) => {
 
 }
 
-const validateTodoId = (res, id, todos, reqId) => {
+const validateTodoId = (props) => {
+    const { res, id, todos, reqId } = props
     const todo = todos.find('id', parseInt(id))
     
     if (!todo) {
