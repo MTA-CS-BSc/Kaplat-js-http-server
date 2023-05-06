@@ -54,11 +54,11 @@ router.delete('/', (req, res) => {
 
     makeLog(todoLogger.info, `Removing todo id ${id}`, req.id)
 
-    const { todo } = validateTodoId(res, id, todos, req.id)
+    const todo = validateTodoId(res, id, todos, req.id)
 
     if (todo) {
         todos.remove(parseInt(id))
-        makeLog(todoLogger.debug, `After removing todo id [${id}] there are ${todos.size()} TODOs in the system`)
+        makeLog(todoLogger.debug, `After removing todo id [${id}] there are ${todos.size()} TODOs in the system`, req.id)
         
         res.status(200).json({result: todos.size()})
     }
@@ -84,7 +84,7 @@ router.get('/content', (req, res) => {
         makeLog(todoLogger.info, `Extracting todos content. Filter: ${filter} | Sorting by: ${sortBy ? sortBy: 'ID'}`, req.id)
         
         const filtered = [...todos.get(filter)]
-        makeLog(todoLogger.debug, `There are a total of ${todos.size()} todos in the system. The result holds ${filtered.size()} todos`, req.id)
+        makeLog(todoLogger.debug, `There are a total of ${todos.size()} todos in the system. The result holds ${filtered.length} todos`, req.id)
         
         res.status(200).json({result: filtered.reduce((res, item) => {
             res.push({...item, status: getStatusString(item.status)})
