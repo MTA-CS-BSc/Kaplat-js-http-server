@@ -3,7 +3,7 @@ const todoRouter = require('./api/TodoRouter')
 const logsRouter = require('./api/LogsRouter')
 const { makeLogForRequest } = require('./modules/loggers/RequestLogger')
 
-const PORT = 8496
+const PORT = 9583
 const app = express()
 
 let requestsCounter = 0
