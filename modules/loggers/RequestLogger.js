@@ -10,7 +10,7 @@ const requestLogger = createLogger({
 })
 
 const requestLog = (req, res, next) => {
-    requestLogger.info(`Incoming request | #${req.id} | resource: ${req.path} | HTTP ${req.method}`, {requestId: req.id})
+    requestLogger.info(`Incoming request | #${req.id} | resource: ${req.path} | HTTP Verb ${req.method}`, {requestId: req.id})
     
     const start = Date.now()
     res.on('finish', () => {
