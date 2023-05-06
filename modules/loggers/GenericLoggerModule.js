@@ -10,7 +10,7 @@ const getLoggerFormat = () => {
     )
 }
 
-const createLog = (callback, data, reqId) => {
+const makeLog = (callback, data, reqId) => {
   callback(data, { requestId: reqId })
 }
 
@@ -36,6 +36,6 @@ const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info', logg
 
 module.exports = {
   getLoggerFormat,
-  createLog,
+  makeLog,
   makeLogger
 }
