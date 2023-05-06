@@ -56,10 +56,11 @@ const validateContentParams = (filter, sortBy) => {
 
 const validateUpdateParams = (props) => {
     const { todos, id, newStatus, res, reqId } = props
+    const errData = { todo: null, oldStatusString: '' }
 
     if (!id) {
         res.status(400).send('Invalid id')
-        return { todo: null, oldStatusString: '' }
+        return errData
     }
 
     const todo = validateTodoId({res, id, todos, reqId})
@@ -68,13 +69,13 @@ const validateUpdateParams = (props) => {
     if (todo) {
         if (!validateStatus(newStatus, false)) {
             res.status(400).send('Invalid status')
-            return { todo: null, oldStatusString: '' }
+            return errData
         }        
     
         return { todo, oldStatusString }   
     }
 
-    return { todo: null, oldStatusString: ''}
+    return errData
 
 }
 
@@ -83,8 +84,9 @@ const validateTodoId = (props) => {
     const todo = todos.find('id', parseInt(id))
     
     if (!todo) {
-        makeLog(todoLogger.error, `Error: no such TODO with id ${id}`, reqId)
-        res.status(404).json({errorMessage: `Error: no such TODO with id ${id}`}) 
+        const errMessage = `Error: no such TODO with id ${id}`
+        makeLog(todoLogger.error, errMessage, reqId)
+        res.status(404).json({errorMessage: errMessage}) 
         return null
     }
     
@@ -92,12 +94,7 @@ const validateTodoId = (props) => {
 }
 
 const validateLoggerName = (loggers, loggerName) => {
-    const foundLogger = loggers.find(logger => logger.defaultMeta.name == loggerName)
-
-    if (!loggerName || !foundLogger)
-        return false
-
-    return true
+    return loggerName && loggers.find(logger => logger.defaultMeta.name == loggerName)
 }
 
 const validateLoggerLevel = (loggerLevel) => {
