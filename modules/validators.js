@@ -67,7 +67,7 @@ const validateContentParams = (filter, sortBy, res) => {
     return true    
 }
 
-const validateUpdateParams = (todos, id, newStatus, res) => {
+const validateUpdateParams = (todos, id, newStatus, res, redIq) => {
     if (!id) {
         res.status(400).send('Invalid id')
         return {}
@@ -78,7 +78,7 @@ const validateUpdateParams = (todos, id, newStatus, res) => {
 
     if (!todo) {
         const errMessage = `Error: no such TODO with id ${id}`
-        makeLog(todoLogger.error, errMessage, req.id)
+        makeLog(todoLogger.error, errMessage, redIq)
 
         res.status(404).json({errorMessage: errMessage})
         return {}
