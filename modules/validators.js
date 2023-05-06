@@ -101,10 +101,20 @@ const validateTodoId = (res, id, todos, reqId) => {
     return todo
 }
 
+const validateLoggerName = (loggers, loggerName) => {
+    const foundLogger = loggers.find(logger => logger.defaultMeta.name == loggerName)
+
+    if (!loggerName || foundLogger)
+        return false
+
+    return true
+}
+
 module.exports = {
     validateStatus,
     validateTodoSchemaAndDetails,
     validateContentParams,
     validateUpdateParams,
-    validateTodoId
+    validateTodoId,
+    validateLoggerName
 }
