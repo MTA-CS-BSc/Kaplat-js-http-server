@@ -1,6 +1,5 @@
 const { decrementUserId } = require('./UserIdGenerator')
 const { getStatusString } = require('./helpers')
-const { makeLog } = require('./loggers/GenericLoggerModule')
 const { todoLogger } = require('./loggers/TodoLogger')
 const status = require('./status')
 
@@ -30,11 +29,11 @@ function validateStatus(statusFilter, withAllKey = false) {
 }
 
 const validateTodoSchemaAndDetails = (props) => {
-    const { error, value, res, reqId, todos } = props
+    const { error, value, res, todos } = props
     const errMessage = error ? error.details[0]?.message : validateCreateTodo(todos, value)
 
     if (errMessage) {
-        makeLog(todoLogger.error, errMessage, reqId)
+        todoLogger.error(errMessage)
 
         decrementUserId()
         res.status(409).json({errorMessage: errMessage})
@@ -55,7 +54,7 @@ const validateContentParams = (filter, sortBy) => {
 }
 
 const validateUpdateParams = (props) => {
-    const { todos, id, newStatus, res, reqId } = props
+    const { todos, id, newStatus, res } = props
     const errData = { todo: null, oldStatusString: '' }
 
     if (!id) {
@@ -63,7 +62,7 @@ const validateUpdateParams = (props) => {
         return errData
     }
 
-    const todo = validateTodoId({res, id, todos, reqId})
+    const todo = validateTodoId({res, id, todos})
     const oldStatusString = getStatusString(todo?.status)
     
     if (todo) {
@@ -80,12 +79,12 @@ const validateUpdateParams = (props) => {
 }
 
 const validateTodoId = (props) => {
-    const { res, id, todos, reqId } = props
+    const { res, id, todos } = props
     const todo = todos.find('id', parseInt(id))
     
     if (!todo) {
         const errMessage = `Error: no such TODO with id ${id}`
-        makeLog(todoLogger.error, errMessage, reqId)
+        todoLogger.error(errMessage)
         res.status(404).json({errorMessage: errMessage}) 
         return null
     }

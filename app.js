@@ -2,14 +2,13 @@ const express = require('express')
 const todoRouter = require('./api/TodoRouter')
 const logsRouter = require('./api/LogsRouter')
 const { makeLogForRequest } = require('./modules/loggers/RequestLogger')
+const { incrementRequestsCounter } = require('./modules/RequestsCounter')
 
 const PORT = 9583
 const app = express()
 
-let requestsCounter = 0
-
 app.use((req, res, next) => {
-    req.id = ++requestsCounter
+    incrementRequestsCounter()
     next()
 })
 

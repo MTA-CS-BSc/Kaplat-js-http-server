@@ -1,4 +1,5 @@
 const { format, createLogger, transports } = require("winston")
+const { getRequestCount } = require("../RequestsCounter")
 
 const getLoggerFormat = () => {
     return format.combine(
@@ -6,12 +7,8 @@ const getLoggerFormat = () => {
         format.timestamp({
           format: 'DD-MM-YYYY HH:mm:ss.SSS'
         }),
-        format.printf(info => `${info.timestamp} ${info.level.toString().toUpperCase()}: ${info.message} | request #${info.metadata.requestId}`)
+        format.printf(info => `${info.timestamp} ${info.level.toString().toUpperCase()}: ${info.message} | request #${getRequestCount()}`)
     )
-}
-
-const makeLog = (callback, data, reqId) => {
-  callback(data, { requestId: reqId })
 }
 
 const createTransportsArray = (isConsole = true, fileName = '') => {
@@ -36,6 +33,5 @@ const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info', logg
 
 module.exports = {
   getLoggerFormat,
-  makeLog,
   makeLogger
 }
