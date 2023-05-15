@@ -18,12 +18,12 @@ router.get('/health', (req, res) => {
 router.post('/', (req, res) => {
     const id = getNextUserId()
 
-    todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
-    todoLogger.debug(`Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
-
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
     if (validateTodoSchemaAndDetails({error, value, res, todos})) {
+        todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
+        todoLogger.debug(`Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
+    
         todos.push({...value})
         res.status(200).json({result: id})
     }
@@ -51,11 +51,11 @@ router.delete('/', (req, res) => {
     if (!id)
         res.status(400).send('Invalid id')
 
-    todoLogger.info(`Removing todo id ${id}`)
-
     const todo = validateTodoId({res, id, todos})
 
     if (todo) {
+        todoLogger.info(`Removing todo id ${id}`)
+
         todos.remove(parseInt(id))
         todoLogger.debug(`After removing todo id [${id}] there are ${todos.size()} TODOs in the system`)
         
