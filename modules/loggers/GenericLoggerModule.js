@@ -18,7 +18,7 @@ const createTransportsArray = (isConsole = true, fileName = '') => {
     transportsArray.push(new transports.Console())
 
   if (fileName)
-    transportsArray.push(new transports.File({filename: fileName}))
+    transportsArray.push(new transports.File({filename: fileName, options: { flags: 'w' } }))
 
   return transportsArray
 }
