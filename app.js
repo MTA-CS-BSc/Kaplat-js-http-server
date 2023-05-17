@@ -4,7 +4,7 @@ const logsRouter = require('./api/LogsRouter')
 const { makeLogForRequest } = require('./modules/loggers/RequestLogger')
 const { incrementRequestsCounter } = require('./modules/RequestsCounter')
 
-const PORT = 9583
+const PORT = 9285
 const app = express()
 
 app.use((req, res, next) => {
