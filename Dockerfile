@@ -1,9 +1,9 @@
-FROM node:lts-alpine
+FROM node:latest
 
 WORKDIR /mta-todos-server
 
 COPY . .
 
-EXPOSE 3769
+EXPOSE 9285
 
 CMD [ "node", "app.js" ]
