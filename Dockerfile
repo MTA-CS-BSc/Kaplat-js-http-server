@@ -4,6 +4,6 @@ WORKDIR /mta-todos-server
 
 COPY . .
 
-EXPOSE 9285
+EXPOSE 443
 
 CMD [ "node", "app.js" ]
