@@ -16,4 +16,4 @@ app.use(makeLogForRequest)
 app.use('/todo', todoRouter)
 app.use('/logs', logsRouter)
 
-app.listen(PORT, () => console.log(`Server is listening on port ${PORT}...\n`))
+app.listen(PORT, "0.0.0.0", () => console.log(`Server is listening on port ${PORT}...\n`))
