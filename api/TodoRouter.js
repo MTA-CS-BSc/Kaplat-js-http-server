@@ -2,7 +2,7 @@ const exp = require('express')
 const TodosCollection = require('../modules/TodosCollection')
 const todoSchema = require('./TodoSchema')
 const status = require('../modules/status')
-const { getNextUserId } = require('../modules/UserIdGenerator')
+const { getNextUserId, resetUserId } = require('../modules/UserIdGenerator')
 const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } = require('../modules/validators')
 const { getSortFunction, getStatusString } = require('../modules/helpers')
 const { todoLogger } = require('../modules/loggers/TodoLogger')
@@ -47,6 +47,7 @@ router.put('/', (req, res) => {
 
 router.delete('/all', (_, res) => {
     todos.removeAll()
+    resetUserId()
     res.status(200).json({ result: "OK" })
 })
 

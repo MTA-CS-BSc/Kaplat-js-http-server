@@ -8,7 +8,12 @@ function decrementUserId() {
     nextUserId--;
 }
 
+function resetUserId() {
+  nextUserId = 1;
+}
+
 module.exports = {
   getNextUserId,
-  decrementUserId
+  decrementUserId,
+  resetUserId
 }
