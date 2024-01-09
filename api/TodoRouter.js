@@ -45,6 +45,11 @@ router.put('/', (req, res) => {
     }
 })
 
+router.delete('/all', (_, res) => {
+    todos.removeAll()
+    res.status(200).json({ result: "OK" })
+})
+
 router.delete('/', (req, res) => {
     const id = req.query?.id
 

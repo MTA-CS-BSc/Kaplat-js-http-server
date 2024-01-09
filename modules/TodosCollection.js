@@ -30,6 +30,10 @@ class TodosCollection {
     remove(todoId) {
         this.todos = this.todos.filter(element => element.id !== todoId)
     }
+
+    removeAll() {
+        this.todos = []
+    }
 }
 
 module.exports = TodosCollection
