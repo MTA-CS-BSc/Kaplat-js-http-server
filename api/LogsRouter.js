@@ -1,7 +1,7 @@
 import { Router, json } from 'express'
-import todoLogger from '../modules/loggers/TodoLogger.js'
-import { requestLogger } from '../modules/loggers/RequestLogger.js'
-import { validateLoggerName, validateLoggerLevel } from '../modules/validators.js'
+import todoLogger from '../logging/loggers/TodoLogger.js'
+import { requestLogger } from '../logging/loggers/RequestLogger.js'
+import { validateLoggerName, validateLoggerLevel } from '../validators/validators.js'
 
 const router = Router()
 router.use(json())

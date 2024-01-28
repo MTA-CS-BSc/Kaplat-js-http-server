@@ -1,11 +1,11 @@
 import { Router, json } from 'express'
-import TodosCollection from '../modules/TodosCollection.js'
-import todoSchema from './TodoSchema.js'
-import status from '../modules/status.js'
-import { getNextUserId, resetUserId } from '../modules/UserIdGenerator.js'
-import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../modules/validators.js'
+import TodosCollection from '../models/TodosCollection.js'
+import todoSchema from '../schemas/TodoSchema.js'
+import status from '../dicts/status.js'
+import { getNextId, resetId } from '../modules/IdGenerator.js'
+import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../validators/validators.js'
 import { getSortFunction, getStatusString } from '../modules/helpers.js'
-import todoLogger from '../modules/loggers/TodoLogger.js'
+import todoLogger from '../logging/loggers/TodoLogger.js'
 
 const todos = new TodosCollection()
 const router = Router()
@@ -16,7 +16,7 @@ router.get('/health', (req, res) => {
 })
 
 router.post('/', (req, res) => {
-    const id = getNextUserId()
+    const id = getNextId()
 
     const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
 
@@ -47,7 +47,7 @@ router.put('/', (req, res) => {
 
 router.delete('/all', (_, res) => {
     todos.removeAll()
-    resetUserId()
+    resetId()
     res.status(200).json({ result: "OK" })
 })
 

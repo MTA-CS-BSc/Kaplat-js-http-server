@@ -1,4 +1,4 @@
-import status from '../modules/status.js'
+import status from '../dicts/status.js'
 
 class TodosCollection {
     constructor() {

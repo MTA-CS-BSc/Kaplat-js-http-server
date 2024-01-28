@@ -2,7 +2,7 @@ import { config } from './config/config.js'
 import express from 'express'
 import todoRouter from './api/TodoRouter.js'
 import logsRouter from './api/LogsRouter.js'
-import { makeLogForRequest } from './modules/loggers/RequestLogger.js';
+import { makeLogForRequest } from './logging/loggers/RequestLogger.js';
 import { incrementRequestsCounter } from './modules/RequestsCounter.js';
 
 const app = express()

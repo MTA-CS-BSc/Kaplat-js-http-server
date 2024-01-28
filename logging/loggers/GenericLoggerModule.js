@@ -1,5 +1,5 @@
 import { format, createLogger, transports } from "winston"
-import { getRequestCount } from "../RequestsCounter.js"
+import { getRequestCount } from "../../modules/RequestsCounter.js"
 
 export const getLoggerFormat = () => {
     return format.combine(

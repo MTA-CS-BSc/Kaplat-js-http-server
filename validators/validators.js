@@ -1,7 +1,7 @@
-import { decrementUserId } from './UserIdGenerator.js'
-import { getStatusString } from './helpers.js'
-import todoLogger from './loggers/TodoLogger.js'
-import status from './status.js'
+import { decreaseId } from '../modules/IdGenerator.js'
+import { getStatusString } from '../modules/helpers.js'
+import todoLogger from '../logging/loggers/TodoLogger.js'
+import status from '../dicts/status.js'
 
 export function validateTitle(todos, title) {
     return (!todos.find('title', title))
@@ -35,7 +35,7 @@ export const validateTodoSchemaAndDetails = (props) => {
     if (errMessage) {
         todoLogger.error(errMessage)
 
-        decrementUserId()
+        decreaseId()
         res.status(409).json({errorMessage: errMessage})
         return false
     }
