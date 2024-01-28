@@ -1,10 +1,10 @@
-const exp = require('express')
-const { todoLogger } = require('../modules/loggers/TodoLogger')
-const { requestLogger } = require('../modules/loggers/RequestLogger')
-const { validateLoggerName, validateLoggerLevel } = require('../modules/validators')
+import { Router, json } from 'express'
+import todoLogger from '../modules/loggers/TodoLogger.js'
+import { requestLogger } from '../modules/loggers/RequestLogger.js'
+import { validateLoggerName, validateLoggerLevel } from '../modules/validators.js'
 
-const router = exp.Router()
-router.use(exp.json())
+const router = Router()
+router.use(json())
 
 const loggers = [ requestLogger, todoLogger ]
 
@@ -34,4 +34,4 @@ router.put('/level', (req, res) => {
         res.status(400).send('Invalid logger name or logger level')
 })
 
-module.exports = router
+export default router

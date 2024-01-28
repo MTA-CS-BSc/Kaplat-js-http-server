@@ -1,15 +1,15 @@
-const exp = require('express')
-const TodosCollection = require('../modules/TodosCollection')
-const todoSchema = require('./TodoSchema')
-const status = require('../modules/status')
-const { getNextUserId, resetUserId } = require('../modules/UserIdGenerator')
-const { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } = require('../modules/validators')
-const { getSortFunction, getStatusString } = require('../modules/helpers')
-const { todoLogger } = require('../modules/loggers/TodoLogger')
+import { Router, json } from 'express'
+import TodosCollection from '../modules/TodosCollection.js'
+import todoSchema from './TodoSchema.js'
+import status from '../modules/status.js'
+import { getNextUserId, resetUserId } from '../modules/UserIdGenerator.js'
+import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../modules/validators.js'
+import { getSortFunction, getStatusString } from '../modules/helpers.js'
+import todoLogger from '../modules/loggers/TodoLogger.js'
 
 const todos = new TodosCollection()
-const router = exp.Router()
-router.use(exp.json())
+const router = Router()
+router.use(json())
 
 router.get('/health', (req, res) => {
     res.status(200).send('OK')
@@ -103,4 +103,4 @@ router.get('/content', (req, res) => {
         res.status(400).send(errMessage)
 })
 
-module.exports = router
+export default router

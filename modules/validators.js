@@ -1,17 +1,17 @@
-const { decrementUserId } = require('./UserIdGenerator')
-const { getStatusString } = require('./helpers')
-const { todoLogger } = require('./loggers/TodoLogger')
-const status = require('./status')
+import { decrementUserId } from './UserIdGenerator.js'
+import { getStatusString } from './helpers.js'
+import todoLogger from './loggers/TodoLogger.js'
+import status from './status.js'
 
-function validateTitle(todos, title) {
+export function validateTitle(todos, title) {
     return (!todos.find('title', title))
 }
 
-function validateDueDate(dueDate) {
+export function validateDueDate(dueDate) {
     return new Date(dueDate) > Date.now()
 }
 
-function validateCreateTodo(todos, todo) {
+export function validateCreateTodo(todos, todo) {
     let errorMessage = ''
 
     if (!validateTitle(todos, todo.title))
@@ -23,12 +23,12 @@ function validateCreateTodo(todos, todo) {
     return errorMessage
 }
 
-function validateStatus(statusFilter, withAllKey = false) {
+export function validateStatus(statusFilter, withAllKey = false) {
     return withAllKey ? Object.keys(status).includes(statusFilter)
             : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
-const validateTodoSchemaAndDetails = (props) => {
+export const validateTodoSchemaAndDetails = (props) => {
     const { error, value, res, todos } = props
     const errMessage = error ? error.details[0]?.message : validateCreateTodo(todos, value)
 
@@ -43,7 +43,7 @@ const validateTodoSchemaAndDetails = (props) => {
     return true
 }
 
-const validateContentParams = (filter, sortBy) => {
+export const validateContentParams = (filter, sortBy) => {
     if (!filter || !validateStatus(filter, true))
         return 'Invalid status'
         
@@ -53,7 +53,7 @@ const validateContentParams = (filter, sortBy) => {
     return ''
 }
 
-const validateUpdateParams = (props) => {
+export const validateUpdateParams = (props) => {
     const { todos, id, newStatus, res } = props
     const errData = { todo: null, oldStatusString: '' }
 
@@ -78,7 +78,7 @@ const validateUpdateParams = (props) => {
 
 }
 
-const validateTodoId = (props) => {
+export const validateTodoId = (props) => {
     const { res, id, todos } = props
     const todo = todos.find('id', parseInt(id))
     
@@ -92,20 +92,10 @@ const validateTodoId = (props) => {
     return todo
 }
 
-const validateLoggerName = (loggers, loggerName) => {
+export const validateLoggerName = (loggers, loggerName) => {
     return loggerName && loggers.find(logger => logger.defaultMeta.name == loggerName)
 }
 
-const validateLoggerLevel = (loggerLevel) => {
+export const validateLoggerLevel = (loggerLevel) => {
     return ['ERROR', 'INFO', 'DEBUG'].includes(loggerLevel)
-}
-
-module.exports = {
-    validateStatus,
-    validateTodoSchemaAndDetails,
-    validateContentParams,
-    validateUpdateParams,
-    validateTodoId,
-    validateLoggerName,
-    validateLoggerLevel
 }

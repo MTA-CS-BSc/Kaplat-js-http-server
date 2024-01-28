@@ -1,4 +1,4 @@
-const status = require('../modules/status')
+import status from '../modules/status.js'
 
 class TodosCollection {
     constructor() {
@@ -36,4 +36,4 @@ class TodosCollection {
     }
 }
 
-module.exports = TodosCollection
+export default TodosCollection

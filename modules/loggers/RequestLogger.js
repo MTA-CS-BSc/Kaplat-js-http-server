@@ -1,9 +1,9 @@
-const { getRequestCount } = require("../RequestsCounter")
-const { makeLogger } = require("./GenericLoggerModule")
+import { getRequestCount } from "../RequestsCounter.js"
+import { makeLogger } from "./GenericLoggerModule.js"
 
-const requestLogger = makeLogger(true, 'logs/requests.log', 'info', 'request-logger')
+export const requestLogger = makeLogger(true, 'logs/requests.log', 'info', 'request-logger')
 
-const makeLogForRequest = (req, res, next) => {
+export const makeLogForRequest = (req, res, next) => {
   requestLogger.info(`Incoming request | #${getRequestCount()} | resource: ${req.path} | HTTP Verb ${req.method}`)
     
     const start = Date.now()
@@ -13,9 +13,4 @@ const makeLogForRequest = (req, res, next) => {
     })
 
     next()
-}
-
-module.exports = {
-    makeLogForRequest,
-    requestLogger
 }

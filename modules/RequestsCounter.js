@@ -1,14 +1,9 @@
 let requestsCounter = 0
 
-const incrementRequestsCounter = () => {
+export const incrementRequestsCounter = () => {
     requestsCounter++
 }
 
-const getRequestCount = () => {
+export const getRequestCount = () => {
     return requestsCounter
-}
-
-module.exports = {
-    getRequestCount,
-    incrementRequestsCounter
 }

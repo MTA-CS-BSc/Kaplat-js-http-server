@@ -1,10 +1,10 @@
-const express = require('express')
-const todoRouter = require('./api/TodoRouter')
-const logsRouter = require('./api/LogsRouter')
-const { makeLogForRequest } = require('./modules/loggers/RequestLogger')
-const { incrementRequestsCounter } = require('./modules/RequestsCounter')
+import { config } from './config/config.js'
+import express from 'express'
+import todoRouter from './api/TodoRouter.js'
+import logsRouter from './api/LogsRouter.js'
+import { makeLogForRequest } from './modules/loggers/RequestLogger.js';
+import { incrementRequestsCounter } from './modules/RequestsCounter.js';
 
-const PORT = 8080
 const app = express()
 
 app.use((req, res, next) => {
@@ -16,4 +16,6 @@ app.use(makeLogForRequest)
 app.use('/todo', todoRouter)
 app.use('/logs', logsRouter)
 
-app.listen(PORT, "0.0.0.0", () => console.log(`Server is listening on port ${PORT}...\n`))
+app.listen(config.PORT, config.HOST, () => console.log(`Server is listening on port ${config.PORT}...\n`))
+
+export default app

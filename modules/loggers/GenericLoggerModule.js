@@ -1,7 +1,7 @@
-const { format, createLogger, transports } = require("winston")
-const { getRequestCount } = require("../RequestsCounter")
+import { format, createLogger, transports } from "winston"
+import { getRequestCount } from "../RequestsCounter.js"
 
-const getLoggerFormat = () => {
+export const getLoggerFormat = () => {
     return format.combine(
         format.metadata(),
         format.timestamp({
@@ -23,15 +23,10 @@ const createTransportsArray = (isConsole = true, fileName = '') => {
   return transportsArray
 }
 
-const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info', loggerName = '') => {
+export const makeLogger = (isConsole = true, fileName = '', defaultLevel = 'info', loggerName = '') => {
     return createLogger({
       level: defaultLevel,
       defaultMeta: { name: loggerName },
       format: getLoggerFormat(),
       transports: [...createTransportsArray(isConsole, fileName)]})
-}
-
-module.exports = {
-  getLoggerFormat,
-  makeLogger
 }

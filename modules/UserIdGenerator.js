@@ -1,19 +1,13 @@
 let nextUserId = 1;
 
-function getNextUserId() {
+export function getNextUserId() {
     return nextUserId++
 }
 
-function decrementUserId() {
+export function decrementUserId() {
     nextUserId--;
 }
 
-function resetUserId() {
+export function resetUserId() {
   nextUserId = 1;
-}
-
-module.exports = {
-  getNextUserId,
-  decrementUserId,
-  resetUserId
 }

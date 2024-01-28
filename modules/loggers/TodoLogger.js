@@ -1,7 +1,3 @@
-const { makeLogger } = require("./GenericLoggerModule")
+import { makeLogger } from "./GenericLoggerModule.js"
 
-const todoLogger = makeLogger(false, 'logs/todos.log', 'info', 'todo-logger')
-
-module.exports = {
-    todoLogger
-}
+export default makeLogger(false, 'logs/todos.log', 'info', 'todo-logger')

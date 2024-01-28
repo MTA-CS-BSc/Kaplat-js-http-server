@@ -1,4 +1,4 @@
-function getSortFunction(sortBy) {
+export function getSortFunction(sortBy) {
     if (!sortBy || sortBy == 'ID')
         return (x, y) => x.id - y.id
     
@@ -10,7 +10,7 @@ function getSortFunction(sortBy) {
         
 }
 
-function getStatusString(statusNumber) {
+export function getStatusString(statusNumber) {
     if (statusNumber == 0)
         return 'PENDING'
 
@@ -22,8 +22,3 @@ function getStatusString(statusNumber) {
 
     return ''
 }
-
- module.exports = {
-    getSortFunction,
-    getStatusString
- }
