@@ -43,12 +43,15 @@ export const validateTodoSchemaAndDetails = (props) => {
     return true
 }
 
-export const validateContentParams = (filter, sortBy) => {
+export const validateContentParams = (filter, sortBy, persistenceMethod) => {
     if (!filter || !validateStatus(filter, true))
         return 'Invalid status'
         
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))
         return 'Invalid sort by'
+
+    if (!persistenceMethod)
+        return 'Missing persistenceMethod'
 
     return ''
 }

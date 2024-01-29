@@ -2,9 +2,9 @@ import { Router, json } from 'express'
 import TodosCollection from '../models/TodosCollection.js'
 import todoSchema from '../entity/TodoSchema.js'
 import status from '../dicts/status.js'
-import { getNextId, resetId } from '../modules/IdGenerator.js'
+import { getNextId } from '../modules/IdGenerator.js'
 import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../validators/validators.js'
-import { getSortFunction, getStatusString } from '../modules/helpers.js'
+import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import {MONGO_CONNECTION} from "../db/connections.js";
 import persistence from "../dicts/persistence.js";
@@ -48,12 +48,6 @@ router.put('/', (req, res) => {
     }
 })
 
-router.delete('/all', (_, res) => {
-    todos.removeAll()
-    resetId()
-    res.status(200).json({ result: "OK" })
-})
-
 router.delete('/', (req, res) => {
     const id = req.query?.id
 
@@ -77,7 +71,7 @@ router.get('/size', (req, res) => {
     const persistenceMethod = req.query?.persistenceMethod
     
     if (!persistenceMethod || !statusFilter || !validateStatus(statusFilter, true))
-        res.status(400).send('Parameters invalid')
+        res.status(400).send('Parameters are invalid')
 
     else {
         if (persistenceMethod === persistence.MONGO) {
@@ -94,26 +88,37 @@ router.get('/size', (req, res) => {
     }
 })
 
-router.get('/content', (req, res) => {
-    const filter = req.query?.status
+router.get('/content', async (req, res) => {
+    const statusFilter = req.query?.status
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
+    const persistenceMethod = req.query?.persistenceMethod
 
-    const errMessage = validateContentParams(filter, sortBy)
+    const errMessage = validateContentParams(statusFilter, sortBy, persistenceMethod)
 
-    if (!errMessage) {
-        todoLogger.info(`Extracting todos content. Filter: ${filter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
-        
-        const filtered = [...todos.get(filter)]
-        todoLogger.debug(`There are a total of ${todos.size()} todos in the system. The result holds ${filtered.length} todos`)
-        
-        res.status(200).json({result: filtered.reduce((res, item) => {
-            res.push({...item, status: getStatusString(item.status)})
-            return res
-        }, []).sort(getSortFunction(sortBy))})
-    }  
-    
-    else
+    if (errMessage)
         res.status(400).send(errMessage)
+    
+    else {
+        if (persistenceMethod === persistence.MONGO) {
+            const where = {}
+
+            if (statusFilter !== 'ALL')
+                where.state = statusFilter
+
+            todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
+            const totalAmountTodos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
+
+            MONGO_CONNECTION.getRepository(MongoTodoEntity).find(where).then(todos => {
+                todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
+                res.status(200).json({
+                    result: todos.sort(getSortFunction(sortBy))
+                                    .map(element => {
+                                        delete element._id
+                                        return element
+                                    })})
+            })
+        }
+    }
 })
 
 export default router
