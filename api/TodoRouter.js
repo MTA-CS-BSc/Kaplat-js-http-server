@@ -1,11 +1,15 @@
 import { Router, json } from 'express'
 import TodosCollection from '../models/TodosCollection.js'
-import todoSchema from '../schemas/TodoSchema.js'
+import todoSchema from '../entity/TodoSchema.js'
 import status from '../dicts/status.js'
 import { getNextId, resetId } from '../modules/IdGenerator.js'
 import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../validators/validators.js'
 import { getSortFunction, getStatusString } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
+import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
+import TodoEntity from "../entity/mongo/MongoTodoEntity.js";
+import persistence from "../dicts/persistence.js";
+import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 
 const todos = new TodosCollection()
 const router = Router()
@@ -71,13 +75,23 @@ router.delete('/', (req, res) => {
 
 router.get('/size', (req, res) => {
     const statusFilter = req.query?.status
-
-    if (!statusFilter || !validateStatus(statusFilter, true))
-        res.status(400).send('Status invalid')
+    const persistenceMethod = req.query?.persistenceMethod
+    
+    if (!persistenceMethod || !statusFilter || !validateStatus(statusFilter, true))
+        res.status(400).send('Parameters invalid')
 
     else {
-        todoLogger.info(`Total TODOs count for state ${statusFilter} is ${todos.size(statusFilter)}`)
-        res.status(200).json({result: todos.size(statusFilter)})    
+        if (persistenceMethod === persistence.MONGO) {
+            const options = {}
+
+            if (statusFilter !== 'ALL')
+                options.where = { state: statusFilter }
+
+            MONGO_CONNECTION.getRepository(MongoTodoEntity).count(options).then(amount => {
+                todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
+                res.status(200).json({ result: amount })
+            })
+        }
     }
 })
 
