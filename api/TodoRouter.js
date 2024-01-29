@@ -6,8 +6,7 @@ import { getNextId, resetId } from '../modules/IdGenerator.js'
 import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../validators/validators.js'
 import { getSortFunction, getStatusString } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
-import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
-import TodoEntity from "../entity/mongo/MongoTodoEntity.js";
+import {MONGO_CONNECTION} from "../db/connections.js";
 import persistence from "../dicts/persistence.js";
 import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 
@@ -82,12 +81,12 @@ router.get('/size', (req, res) => {
 
     else {
         if (persistenceMethod === persistence.MONGO) {
-            const options = {}
+            const where = {}
 
             if (statusFilter !== 'ALL')
-                options.where = { state: statusFilter }
+                where.state = statusFilter
 
-            MONGO_CONNECTION.getRepository(MongoTodoEntity).count(options).then(amount => {
+            MONGO_CONNECTION.getRepository(MongoTodoEntity).countBy(where).then(amount => {
                 todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
                 res.status(200).json({ result: amount })
             })
