@@ -1,4 +1,4 @@
-const PORT = parseInt(process.env.PORT) || 8080
+const PORT = 9285
 const HOST = "0.0.0.0"
 
 export const config = {

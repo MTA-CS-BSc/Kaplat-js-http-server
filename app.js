@@ -1,4 +1,4 @@
-import { config } from './config/config.js'
+import { config } from './api/config.js'
 import express from 'express'
 import todoRouter from './api/TodoRouter.js'
 import logsRouter from './api/LogsRouter.js'
