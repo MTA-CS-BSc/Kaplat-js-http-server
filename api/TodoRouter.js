@@ -54,10 +54,18 @@ router.delete('/', async (req, res) => {
 
     else {
         todoLogger.info(`Removing todo id ${id}`)
+        const todosAmountBeforeRemoval = await getTotalTodosCount()
         await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: parseInt(id) })
         const todosAmountAfterRemoval = await getTotalTodosCount()
-        todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
-        res.status(200).json({result: todosAmountAfterRemoval})
+
+        if (todosAmountBeforeRemoval < todosAmountAfterRemoval) {
+            todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
+            res.status(200).json({ result: todosAmountAfterRemoval })
+        }
+
+        else
+            res.status(404).json({ errorMessage: `Error: no such TODO with id ${id}`})
+
     }
 })
 
