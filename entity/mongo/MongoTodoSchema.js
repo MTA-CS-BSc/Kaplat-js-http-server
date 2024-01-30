@@ -3,6 +3,8 @@ export default {
   columns: {
     _id: {
       type: 'ObjectId',
+      generated: true,
+      objectId: true,
       primary: true
     },
     rawid: {
