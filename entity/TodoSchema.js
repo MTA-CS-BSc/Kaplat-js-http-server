@@ -5,5 +5,5 @@ export default Joi.object({
         title: Joi.string().required(),
         content: Joi.string().required(),
         duedate: Joi.number().required(),
-        state: Joi.number().required()
+        state: Joi.string().required()
     })
