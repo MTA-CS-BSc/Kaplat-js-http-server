@@ -3,44 +3,42 @@ import { getStatusString } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import status from '../dicts/status.js'
 
-export function validateTitle(todos, title) {
-    return (!todos.find('title', title))
+export const validateTitle = (todos, title) => {
+    return !todos.some(todo => todo.title === title)
 }
 
-export function validateDueDate(dueDate) {
+export const validateDueDate = (dueDate) => {
     return new Date(dueDate) > Date.now()
 }
 
-export function validateCreateTodo(todos, todo) {
+export const validateCreateTodo = (todos, todo) => {
     let errorMessage = ''
 
     if (!validateTitle(todos, todo.title))
         errorMessage = `Error: TODO with the title ${todo.title} already exists in the system`
 
-    else if (!validateDueDate(todo.dueDate))
+    else if (!validateDueDate(todo.duedate))
         errorMessage = `Error: Can’t create new TODO that its due date is in the past`
 
     return errorMessage
 }
 
-export function validateStatus(statusFilter, withAllKey = false) {
+export const validateStatus = (statusFilter, withAllKey = false) => {
     return withAllKey ? Object.keys(status).includes(statusFilter)
             : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
 }
 
 export const validateTodoSchemaAndDetails = (props) => {
-    const { error, value, res, todos } = props
-    const errMessage = error ? error.details[0]?.message : validateCreateTodo(todos, value)
+    const { error, value, todos } = props
+    const errMessage = error ? 'Error: ' + error.details[0]?.message : validateCreateTodo(todos, value)
 
     if (errMessage) {
         todoLogger.error(errMessage)
-
         decreaseId()
-        res.status(409).json({errorMessage: errMessage})
-        return false
+        return errMessage
     }
 
-    return true
+    return ''
 }
 
 export const validateContentParams = (filter, sortBy, persistenceMethod) => {

@@ -3,7 +3,7 @@ export function getSortFunction(sortBy) {
         return (x, y) => x.id - y.id
     
     else if (sortBy == 'DUE_DATE')
-        return (x, y) => x.dueDate - y.dueDate
+        return (x, y) => x.duedate - y.duedate
         
     else if (sortBy == 'TITLE')
         return (x, y) => x.title - y.title
