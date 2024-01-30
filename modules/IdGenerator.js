@@ -8,6 +8,6 @@ export function decreaseId() {
     nextUserId--;
 }
 
-export function resetId() {
-  nextUserId = 1;
+export function setId(value) {
+  nextUserId = value;
 }
