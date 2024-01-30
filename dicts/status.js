@@ -1,4 +1,4 @@
-export default { PENDING: 0,
-    LATE: 1,
-    DONE: 2,
-    ALL: 3 }
+export default { PENDING: 'PENDING',
+    LATE: 'LATE',
+    DONE: 'DONE',
+    ALL: 'ALL' }
