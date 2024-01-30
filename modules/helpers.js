@@ -7,5 +7,4 @@ export const getSortFunction = (sortBy) => {
         
     else if (sortBy === 'TITLE')
         return (x, y) => x.title.localeCompare(y.title)
-        
 }

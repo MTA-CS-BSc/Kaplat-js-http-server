@@ -11,7 +11,7 @@ import persistence from "../dicts/persistence.js";
 import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
 import {getNextId} from "../modules/IdGenerator.js";
-import todoSchema from "../entity/TodoSchema.js";
+import todoSchema from "../modules/TodoSchema.js";
 import status from "../dicts/status.js";
 
 const router = Router()

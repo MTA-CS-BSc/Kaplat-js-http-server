@@ -6,4 +6,4 @@ export default Joi.object({
         content: Joi.string().required(),
         dueDate: Joi.number().required(),
         state: Joi.string().required()
-    })
+})
