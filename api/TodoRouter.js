@@ -1,11 +1,14 @@
 import { Router, json } from 'express'
-import { validateStatus, validateContentParams } from '../validators/validators.js'
+import {validateStatus, validateContentParams, validateTodoSchemaAndDetails} from '../validators/validators.js'
 import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
 import persistence from "../dicts/persistence.js";
 import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
+import {getNextId} from "../modules/IdGenerator.js";
+import todoSchema from "../entity/TodoSchema.js";
+import status from "../dicts/status.js";
 
 const router = Router()
 router.use(json())
@@ -14,18 +17,24 @@ router.get('/health', (req, res) => {
     res.status(200).send('OK')
 })
 
-router.post('/', (req, res) => {
-    // const id = getNextId()
-    //
-    // const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
-    //
-    // if (validateTodoSchemaAndDetails({error, value, res, todos})) {
-    //     todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
-    //     todoLogger.debug(`Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
-    //
-    //     todos.push({...value})
-    //     res.status(200).json({result: id})
-    // }
+router.post('/', async (req, res) => {
+    const id = getNextId()
+    const { error, value } = todoSchema.validate({ rawid: id, state: status.PENDING, ...req.body})
+    const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
+    const validateTodoErrMessage = validateTodoSchemaAndDetails({ error, value, todos })
+
+    if (!validateTodoErrMessage) {
+        todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
+        todoLogger.debug(`Currently there are ${await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()} Todos in the system. New TODO will be assigned with id ${id}`)
+
+        await MONGO_CONNECTION.getRepository(MongoTodoEntity).save(value)
+        await POSTGRES_CONNECTION.getRepository(MongoTodoEntity).save(value)
+
+        res.status(200).json({result: id})
+    }
+
+    else
+        res.status(409).json({errorMessage: validateTodoErrMessage})
 })
 
 router.put('/', (req, res) => {
