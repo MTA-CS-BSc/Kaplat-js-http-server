@@ -9,6 +9,9 @@ import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 const router = Router()
 router.use(json())
 
+const getTotalTodosCount = () => {
+    return MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
+}
 router.get('/health', (req, res) => {
     res.status(200).send('OK')
 })
@@ -43,22 +46,19 @@ router.put('/', (req, res) => {
     // }
 })
 
-router.delete('/', (req, res) => {
-    // const id = req.query?.id
-    //
-    // if (!id)
-    //     res.status(400).send('Invalid id')
-    //
-    // const todo = validateTodoId({res, id, todos})
-    //
-    // if (todo) {
-    //     todoLogger.info(`Removing todo id ${id}`)
-    //
-    //     todos.remove(parseInt(id))
-    //     todoLogger.debug(`After removing todo id [${id}] there are ${todos.size()} TODOs in the system`)
-    //
-    //     res.status(200).json({result: todos.size()})
-    // }
+router.delete('/', async (req, res) => {
+    const id = req.query?.id
+
+    if (!id)
+        res.status(400).send('Invalid id')
+
+    else {
+        todoLogger.info(`Removing todo id ${id}`)
+        await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: parseInt(id) })
+        const todosAmountAfterRemoval = await getTotalTodosCount()
+        todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
+        res.status(200).json({result: todosAmountAfterRemoval})
+    }
 })
 
 router.get('/size', (req, res) => {
@@ -106,7 +106,7 @@ router.get('/content', async (req, res) => {
                 where.state = statusFilter
 
             todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
-            const totalAmountTodos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
+            const totalAmountTodos = await getTotalTodosCount()
 
             MONGO_CONNECTION.getRepository(MongoTodoEntity).find(where).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
