@@ -1,6 +1,7 @@
 import {DataSource} from "typeorm";
 import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
 import {setId} from "../modules/IdGenerator.js";
+import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
 
 export const POSTGRES_CONNECTION = new DataSource({
     type: 'postgres',
@@ -9,6 +10,7 @@ export const POSTGRES_CONNECTION = new DataSource({
     username: 'postgres',
     password: 'docker',
     database: 'todos',
+    entities: [ PostgresTodoEntity ]
 });
 
 export const MONGO_CONNECTION = new DataSource({

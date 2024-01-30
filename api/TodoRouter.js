@@ -2,9 +2,10 @@ import { Router, json } from 'express'
 import { validateStatus, validateContentParams } from '../validators/validators.js'
 import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
-import {MONGO_CONNECTION} from "../db/connections.js";
+import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
 import persistence from "../dicts/persistence.js";
 import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
+import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
 
 const router = Router()
 router.use(json())
@@ -56,6 +57,7 @@ router.delete('/', async (req, res) => {
         todoLogger.info(`Removing todo id ${id}`)
         const todosAmountBeforeRemoval = await getTotalTodosCount()
         await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: parseInt(id) })
+        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).delete({ rawid: parseInt(id) })
         const todosAmountAfterRemoval = await getTotalTodosCount()
 
         if (todosAmountBeforeRemoval < todosAmountAfterRemoval) {
@@ -77,21 +79,23 @@ router.get('/size', (req, res) => {
         res.status(400).send('Parameters are invalid')
 
     else {
+        const where = {}
+
+        if (statusFilter !== 'ALL')
+            where.state = statusFilter
+
         if (persistenceMethod === persistence.MONGO) {
-            const where = {}
-
-            if (statusFilter !== 'ALL')
-                where.state = statusFilter
-
             MONGO_CONNECTION.getRepository(MongoTodoEntity).countBy(where).then(amount => {
                 todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
                 res.status(200).json({ result: amount })
             })
         }
 
-        //TODO
-        else if (persistenceMethod === persistence.POSTGRES) {
-
+        else {
+            POSTGRES_CONNECTION.getRepository(MongoTodoEntity).countBy(where).then(amount => {
+                todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
+                res.status(200).json({ result: amount })
+            })
         }
     }
 })
