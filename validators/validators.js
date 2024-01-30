@@ -1,5 +1,4 @@
 import { decreaseId } from '../modules/IdGenerator.js'
-import { getStatusString } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import status from '../dicts/status.js'
 
@@ -8,10 +7,15 @@ export const validateTitle = (todos, title) => {
 }
 
 export const validateDueDate = (dueDate) => {
-    return new Date(dueDate) > Date.now()
+    return dueDate > Date.now()
 }
 
-export const validateCreateTodo = (todos, todo) => {
+export const validateStatus = (statusFilter, withAllKey = false) => {
+    return withAllKey ? Object.keys(status).includes(statusFilter)
+        : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
+}
+
+const validateTodoDetails = (todos, todo) => {
     let errorMessage = ''
 
     if (!validateTitle(todos, todo.title))
@@ -23,16 +27,11 @@ export const validateCreateTodo = (todos, todo) => {
     return errorMessage
 }
 
-export const validateStatus = (statusFilter, withAllKey = false) => {
-    return withAllKey ? Object.keys(status).includes(statusFilter)
-            : Object.keys(status).filter(element => element !== 'ALL').includes(statusFilter)
-}
-
-export const validateTodoSchemaAndDetails = (props) => {
+export const validateCreateTodo = (props) => {
     const { error, value, todos } = props
-    const errMessage = error ? 'Error: ' + error.details[0]?.message : validateCreateTodo(todos, value)
+    const errMessage = error ? `Error: ${error.details[0]?.message}` : validateTodoDetails(todos, value)
 
-    if (errMessage) {
+    if (!!errMessage) {
         todoLogger.error(errMessage)
         decreaseId()
         return errMessage
@@ -43,54 +42,31 @@ export const validateTodoSchemaAndDetails = (props) => {
 
 export const validateContentParams = (filter, sortBy, persistenceMethod) => {
     if (!filter || !validateStatus(filter, true))
-        return 'Invalid status'
+        return 'Error: Invalid status'
         
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))
-        return 'Invalid sort by'
+        return 'Error: Invalid sort by'
 
     if (!persistenceMethod)
-        return 'Missing persistenceMethod'
+        return 'Error: Missing persistenceMethod'
 
     return ''
 }
 
 export const validateUpdateParams = (props) => {
-    const { todos, id, newStatus, res } = props
-    const errData = { todo: null, oldStatusString: '' }
+    const { todos, id, newStatus } = props
 
-    if (!id) {
-        res.status(400).send('Invalid id')
-        return errData
-    }
+    if (!validateStatus(newStatus, false))
+        return `Error: Invalid status ${newStatus}`
 
-    const todo = validateTodoId({res, id, todos})
-    const oldStatusString = getStatusString(todo?.status)
-    
-    if (todo) {
-        if (!validateStatus(newStatus, false)) {
-            res.status(400).send('Invalid status')
-            return errData
-        }        
-    
-        return { todo, oldStatusString }   
-    }
+    else if (!id)
+        return `Error: Invalid id`
 
-    return errData
+    else if (!todos.find(todo => todo.rawid === id))
+        return `Error: no such TODO with id ${id}`
 
-}
+    return ''
 
-export const validateTodoId = (props) => {
-    const { res, id, todos } = props
-    const todo = todos.find('id', parseInt(id))
-    
-    if (!todo) {
-        const errMessage = `Error: no such TODO with id ${id}`
-        todoLogger.error(errMessage)
-        res.status(404).json({errorMessage: errMessage}) 
-        return null
-    }
-    
-    return todo
 }
 
 export const validateLoggerName = (loggers, loggerName) => {

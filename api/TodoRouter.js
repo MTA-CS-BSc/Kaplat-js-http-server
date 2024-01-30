@@ -1,5 +1,9 @@
 import { Router, json } from 'express'
-import {validateStatus, validateContentParams, validateTodoSchemaAndDetails} from '../validators/validators.js'
+import {
+    validateStatus,
+    validateContentParams,
+    validateUpdateParams, validateCreateTodo
+} from '../validators/validators.js'
 import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
@@ -24,7 +28,7 @@ router.post('/', async (req, res) => {
     delete value.dueDate
 
     const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
-    const validateTodoErrMessage = validateTodoSchemaAndDetails({ error, value, todos })
+    const validateTodoErrMessage = validateCreateTodo({ error, value, todos })
 
     if (!validateTodoErrMessage) {
         todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
@@ -40,36 +44,42 @@ router.post('/', async (req, res) => {
         res.status(409).json({errorMessage: validateTodoErrMessage})
 })
 
-router.put('/', (req, res) => {
-    // const id = req.query?.id
-    // const newStatus = req.query?.status
-    //
-    // todoLogger.info(`Update TODO id [${id}] state to ${newStatus}`)
-    //
-    // const { todo, oldStatusString } = validateUpdateParams({todos, id, newStatus, res})
-    //
-    // if (todo) {
-    //     todoLogger.debug(`Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
-    //     todo.status = status[newStatus]
-    //
-    //     res.status(200).json({result: oldStatusString})
-    // }
+router.put('/', async (req, res) => {
+    const id = parseInt(req.query?.id)
+    const newStatus = req.query?.status
+    const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
+
+    todoLogger.info(`Update TODO id [${id}] state to ${newStatus}`)
+
+    const validateUpdateErrorMessage = validateUpdateParams({todos, id, newStatus})
+
+    if (!validateUpdateErrorMessage) {
+        const todoToUpdate = await MONGO_CONNECTION.getRepository(MongoTodoEntity).findOneBy({ rawid: id })
+        todoLogger.debug(`Todo id [${id}] state change: ${todoToUpdate.state} --> ${newStatus}`)
+
+        await MONGO_CONNECTION.getRepository(MongoTodoEntity).update({ rawid: id }, { state: newStatus })
+        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).update({ rawid: id }, { state: newStatus })
+        res.status(200).json({result: todoToUpdate.state})
+    }
+
+    else
+        res.status(400).json({ errorMessage: validateUpdateErrorMessage })
 })
 
 router.delete('/', async (req, res) => {
-    const id = req.query?.id
+    const id = parseInt(req.query?.id)
 
     if (!id)
-        res.status(400).send('Invalid id')
+        res.status(400).send('Error: Invalid id')
 
     else {
         todoLogger.info(`Removing todo id ${id}`)
         const todosAmountBeforeRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
-        await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: parseInt(id) })
-        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).delete({ rawid: parseInt(id) })
+        await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: id })
+        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).delete({ rawid: id })
         const todosAmountAfterRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
 
-        if (todosAmountBeforeRemoval < todosAmountAfterRemoval) {
+        if (todosAmountBeforeRemoval > todosAmountAfterRemoval) {
             todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
             res.status(200).json({ result: todosAmountAfterRemoval })
         }
@@ -130,28 +140,38 @@ router.get('/content', async (req, res) => {
         if (persistenceMethod === persistence.MONGO) {
             const totalAmountTodos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
 
-            MONGO_CONNECTION.getRepository(MongoTodoEntity).find(where).then(todos => {
+            MONGO_CONNECTION.getRepository(MongoTodoEntity).find({ where: where }).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
                 res.status(200).json({
-                    result: todos.sort(getSortFunction(sortBy))
-                                    .map(element => {
-                                        delete element._id
-                                        return element
-                                    })})
+                    result: todos.map(item => {
+                        return {
+                            id: item.rawid,
+                            title: item.title,
+                            content: item.content,
+                            dueDate: item.duedate,
+                            status: item.state
+                        }
+                    }).sort(getSortFunction(sortBy))
+                })
             })
         }
 
         else {
             const totalAmountTodos = await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).count()
 
-            POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).find(where).then(todos => {
+            POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).findBy(where).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
                 res.status(200).json({
-                    result: todos.sort(getSortFunction(sortBy))
-                        .map(element => {
-                            delete element._id
-                            return element
-                        })})
+                    result: todos.map(item => {
+                        return {
+                            id: item.rawid,
+                            title: item.title,
+                            content: item.content,
+                            dueDate: item.duedate,
+                            status: item.state
+                        }
+                    }).sort(getSortFunction(sortBy))
+                })
             })
         }
     }
