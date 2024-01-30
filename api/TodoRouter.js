@@ -20,6 +20,9 @@ router.get('/health', (req, res) => {
 router.post('/', async (req, res) => {
     const id = getNextId()
     const { error, value } = todoSchema.validate({ rawid: id, state: status.PENDING, ...req.body})
+    value.duedate = value.dueDate
+    delete value.dueDate
+
     const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
     const validateTodoErrMessage = validateTodoSchemaAndDetails({ error, value, todos })
 
