@@ -1,7 +1,7 @@
 let nextUserId = 1;
 
 export function getNextId() {
-    return nextUserId++
+    return ++nextUserId
 }
 
 export function decreaseId() {
