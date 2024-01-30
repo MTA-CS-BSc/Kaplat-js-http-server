@@ -10,9 +10,6 @@ import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
 const router = Router()
 router.use(json())
 
-const getTotalTodosCount = () => {
-    return MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
-}
 router.get('/health', (req, res) => {
     res.status(200).send('OK')
 })
@@ -55,10 +52,10 @@ router.delete('/', async (req, res) => {
 
     else {
         todoLogger.info(`Removing todo id ${id}`)
-        const todosAmountBeforeRemoval = await getTotalTodosCount()
+        const todosAmountBeforeRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
         await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: parseInt(id) })
         await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).delete({ rawid: parseInt(id) })
-        const todosAmountAfterRemoval = await getTotalTodosCount()
+        const todosAmountAfterRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
 
         if (todosAmountBeforeRemoval < todosAmountAfterRemoval) {
             todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
@@ -111,14 +108,15 @@ router.get('/content', async (req, res) => {
         res.status(400).send(errMessage)
     
     else {
+        const where = {}
+
+        if (statusFilter !== 'ALL')
+            where.state = statusFilter
+
+        todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
+
         if (persistenceMethod === persistence.MONGO) {
-            const where = {}
-
-            if (statusFilter !== 'ALL')
-                where.state = statusFilter
-
-            todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
-            const totalAmountTodos = await getTotalTodosCount()
+            const totalAmountTodos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
 
             MONGO_CONNECTION.getRepository(MongoTodoEntity).find(where).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
@@ -131,9 +129,18 @@ router.get('/content', async (req, res) => {
             })
         }
 
-        //TODO
-        else if (persistenceMethod === persistence.POSTGRES) {
+        else {
+            const totalAmountTodos = await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).count()
 
+            POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).find(where).then(todos => {
+                todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
+                res.status(200).json({
+                    result: todos.sort(getSortFunction(sortBy))
+                        .map(element => {
+                            delete element._id
+                            return element
+                        })})
+            })
         }
     }
 })
