@@ -1,9 +1,9 @@
 import Joi from "joi";
 
 export default Joi.object({
-        id: Joi.number().integer().positive().required(),
+        rawid: Joi.number().integer().positive().required(),
         title: Joi.string().required(),
         content: Joi.string().required(),
-        dueDate: Joi.number().required(),
-        status: Joi.number().required()
+        duedate: Joi.number().required(),
+        state: Joi.number().required()
     })
