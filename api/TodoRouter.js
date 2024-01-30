@@ -82,7 +82,7 @@ router.get('/size', (req, res) => {
         }
 
         //TODO
-        else if (persistanceMethod === persistence.POSTGRES) {
+        else if (persistenceMethod === persistence.POSTGRES) {
 
         }
     }
@@ -120,7 +120,7 @@ router.get('/content', async (req, res) => {
         }
 
         //TODO
-        else if (persistanceMethod === persistence.POSTGRES) {
+        else if (persistenceMethod === persistence.POSTGRES) {
 
         }
     }
