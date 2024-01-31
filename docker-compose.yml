@@ -8,5 +8,3 @@ services:
     image: theshultz/kaplat-mongo-instance:latest
     ports:
       - "27017:27017"
-  pgadmin4:
-    image: dpage/pgadmin4:latest
