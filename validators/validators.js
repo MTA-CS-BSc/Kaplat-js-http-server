@@ -1,4 +1,3 @@
-import { decreaseId } from '../modules/IdGenerator.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
 import status from '../dicts/status.js'
 
@@ -33,7 +32,6 @@ export const validateCreateTodo = (props) => {
 
     if (!!errMessage) {
         todoLogger.error(errMessage)
-        decreaseId()
         return errMessage
     }
 

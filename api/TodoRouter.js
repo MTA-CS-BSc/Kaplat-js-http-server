@@ -6,36 +6,37 @@ import {
 } from '../validators/validators.js'
 import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
-import {MONGO_CONNECTION, POSTGRES_CONNECTION} from "../db/connections.js";
 import persistence from "../dicts/persistence.js";
-import MongoTodoEntity from "../entity/mongo/MongoTodoEntity.js";
-import PostgresTodoEntity from "../entity/postgres/PostgresTodoEntity.js";
-import {getNextId} from "../modules/IdGenerator.js";
 import todoSchema from "../modules/TodoSchema.js";
 import status from "../dicts/status.js";
+import {createMongoManager} from "../db/MongoManager.js";
+import {createPostgresManager} from "../db/PostgresManager.js";
 
 const router = Router()
 router.use(json())
+
+const { getRepo: getMongoRepo } = createMongoManager()
+const { getRepo: getPostgresRepo } = createPostgresManager()
 
 router.get('/health', (req, res) => {
     res.status(200).send('OK')
 })
 
 router.post('/', async (req, res) => {
-    const id = getNextId()
+    const id = await getPostgresRepo().maximum('rawid').then(value => value + 1)
     const { error, value } = todoSchema.validate({ rawid: id, state: status.PENDING, ...req.body})
     value.duedate = value.dueDate
     delete value.dueDate
 
-    const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
+    const todos = await getMongoRepo().find()
     const validateTodoErrMessage = validateCreateTodo({ error, value, todos })
 
     if (!validateTodoErrMessage) {
         todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
-        todoLogger.debug(`Currently there are ${await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()} Todos in the system. New TODO will be assigned with id ${id}`)
+        todoLogger.debug(`Currently there are ${await getMongoRepo().count()} Todos in the system. New TODO will be assigned with id ${id}`)
 
-        await MONGO_CONNECTION.getRepository(MongoTodoEntity).save(value)
-        await POSTGRES_CONNECTION.getRepository(MongoTodoEntity).save(value)
+        await getMongoRepo().save(value)
+        await getPostgresRepo().save(value)
 
         res.status(200).json({result: id})
     }
@@ -47,18 +48,18 @@ router.post('/', async (req, res) => {
 router.put('/', async (req, res) => {
     const id = parseInt(req.query?.id)
     const newStatus = req.query?.status
-    const todos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).find()
+    const todos = await getMongoRepo().find()
 
     todoLogger.info(`Update TODO id [${id}] state to ${newStatus}`)
 
     const validateUpdateErrorMessage = validateUpdateParams({todos, id, newStatus})
 
     if (!validateUpdateErrorMessage) {
-        const todoToUpdate = await MONGO_CONNECTION.getRepository(MongoTodoEntity).findOneBy({ rawid: id })
+        const todoToUpdate = await getMongoRepo().findOneBy({ rawid: id })
         todoLogger.debug(`Todo id [${id}] state change: ${todoToUpdate.state} --> ${newStatus}`)
 
-        await MONGO_CONNECTION.getRepository(MongoTodoEntity).update({ rawid: id }, { state: newStatus })
-        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).update({ rawid: id }, { state: newStatus })
+        await getMongoRepo().update({ rawid: id }, { state: newStatus })
+        await getPostgresRepo().update({ rawid: id }, { state: newStatus })
         res.status(200).json({result: todoToUpdate.state})
     }
 
@@ -74,10 +75,10 @@ router.delete('/', async (req, res) => {
 
     else {
         todoLogger.info(`Removing todo id ${id}`)
-        const todosAmountBeforeRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
-        await MONGO_CONNECTION.getRepository(MongoTodoEntity).delete({ rawid: id })
-        await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).delete({ rawid: id })
-        const todosAmountAfterRemoval = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
+        const todosAmountBeforeRemoval = await getMongoRepo().count()
+        await getMongoRepo().delete({ rawid: id })
+        await getPostgresRepo().delete({ rawid: id })
+        const todosAmountAfterRemoval = await getMongoRepo().count()
 
         if (todosAmountBeforeRemoval > todosAmountAfterRemoval) {
             todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
@@ -104,14 +105,14 @@ router.get('/size', (req, res) => {
             where.state = statusFilter
 
         if (persistenceMethod === persistence.MONGO) {
-            MONGO_CONNECTION.getRepository(MongoTodoEntity).countBy(where).then(amount => {
+            getMongoRepo().countBy(where).then(amount => {
                 todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
                 res.status(200).json({ result: amount })
             })
         }
 
         else {
-            POSTGRES_CONNECTION.getRepository(MongoTodoEntity).countBy(where).then(amount => {
+            getPostgresRepo().countBy(where).then(amount => {
                 todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
                 res.status(200).json({ result: amount })
             })
@@ -138,9 +139,9 @@ router.get('/content', async (req, res) => {
         todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
 
         if (persistenceMethod === persistence.MONGO) {
-            const totalAmountTodos = await MONGO_CONNECTION.getRepository(MongoTodoEntity).count()
+            const totalAmountTodos = await getMongoRepo().count()
 
-            MONGO_CONNECTION.getRepository(MongoTodoEntity).find({ where: where }).then(todos => {
+            getMongoRepo().find({ where: where }).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
                 res.status(200).json({
                     result: todos.map(item => {
@@ -157,9 +158,9 @@ router.get('/content', async (req, res) => {
         }
 
         else {
-            const totalAmountTodos = await POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).count()
+            const totalAmountTodos = await getPostgresRepo().count()
 
-            POSTGRES_CONNECTION.getRepository(PostgresTodoEntity).findBy(where).then(todos => {
+            getPostgresRepo().findBy(where).then(todos => {
                 todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
                 res.status(200).json({
                     result: todos.map(item => {

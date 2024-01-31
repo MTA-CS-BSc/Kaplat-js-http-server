@@ -79,3 +79,7 @@ typings/
 .dynamodb/
 
 *package-lock.json
+/.idea/vcs.xml
+/.idea/modules.xml
+/.idea/misc.xml
+/.idea/js-http-server.iml
