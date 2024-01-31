@@ -1,4 +1,3 @@
-import todoLogger from '../logging/loggers/TodoLogger.js'
 import status from '../dicts/status.js'
 
 export const validateTitle = (todos, title) => {
@@ -26,49 +25,48 @@ const validateTodoDetails = (todos, todo) => {
     return errorMessage
 }
 
-export const validateCreateTodo = (props) => {
-    const { error, value, todos } = props
+export const validateCreateTodo = ({ error, value, todos }) => {
     const errMessage = error ? `Error: ${error.details[0]?.message}` : validateTodoDetails(todos, value)
-
-    if (!!errMessage) {
-        todoLogger.error(errMessage)
-        return errMessage
-    }
-
-    return ''
+    return { valid: !errMessage, errorMessage: errMessage }
 }
 
 export const validateContentParams = (filter, sortBy, persistenceMethod) => {
+    let errMessage = ''
+
     if (!filter || !validateStatus(filter, true))
-        return 'Error: Invalid status'
+        errMessage = 'Error: Invalid status'
         
     if (sortBy !== '' && !(['DUE_DATE', 'ID', 'TITLE'].includes(sortBy)))
-        return 'Error: Invalid sort by'
+        errMessage = 'Error: Invalid sort by'
 
     if (!persistenceMethod)
-        return 'Error: Missing persistenceMethod'
+        errMessage = 'Error: Missing persistenceMethod'
 
-    return ''
+    return {
+        valid: !errMessage,
+        errorMessage: errMessage
+    }
 }
 
-export const validateUpdateParams = (props) => {
-    const { todos, id, newStatus } = props
-
+export const validateUpdateParams = ({ todos, id, newStatus }) => {
+    let errMessage = ''
     if (!validateStatus(newStatus, false))
-        return `Error: Invalid status ${newStatus}`
+        errMessage = `Error: Invalid status ${newStatus}`
 
     else if (!id)
-        return `Error: Invalid id`
+        errMessage = `Error: Invalid id`
 
     else if (!todos.find(todo => todo.rawid === id))
-        return `Error: no such TODO with id ${id}`
+        errMessage = `Error: no such TODO with id ${id}`
 
-    return ''
-
+    return {
+        valid: !errMessage,
+        errorMessage: errMessage
+    }
 }
 
 export const validateLoggerName = (loggers, loggerName) => {
-    return loggerName && loggers.find(logger => logger.defaultMeta.name == loggerName)
+    return loggerName && loggers.find(logger => logger.defaultMeta.name === loggerName)
 }
 
 export const validateLoggerLevel = (loggerLevel) => {

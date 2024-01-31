@@ -29,9 +29,14 @@ router.post('/', async (req, res) => {
     delete value.dueDate
 
     const todos = await getMongoRepo().find()
-    const validateTodoErrMessage = validateCreateTodo({ error, value, todos })
+    const { valid, errorMessage } = validateCreateTodo({ error, value, todos })
 
-    if (!validateTodoErrMessage) {
+    if (!valid) {
+        todoLogger.error(errorMessage)
+        res.status(409).json({errorMessage: errorMessage })
+    }
+
+    else {
         todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
         todoLogger.debug(`Currently there are ${await getMongoRepo().count()} Todos in the system. New TODO will be assigned with id ${id}`)
 
@@ -40,9 +45,6 @@ router.post('/', async (req, res) => {
 
         res.status(200).json({result: id})
     }
-
-    else
-        res.status(409).json({errorMessage: validateTodoErrMessage})
 })
 
 router.put('/', async (req, res) => {
@@ -51,10 +53,12 @@ router.put('/', async (req, res) => {
     const todos = await getMongoRepo().find()
 
     todoLogger.info(`Update TODO id [${id}] state to ${newStatus}`)
+    const { valid, errorMessage} = validateUpdateParams({todos, id, newStatus})
 
-    const validateUpdateErrorMessage = validateUpdateParams({todos, id, newStatus})
+    if (!valid)
+        res.status(400).json({ errorMessage: errorMessage })
 
-    if (!validateUpdateErrorMessage) {
+    else {
         const todoToUpdate = await getMongoRepo().findOneBy({ rawid: id })
         todoLogger.debug(`Todo id [${id}] state change: ${todoToUpdate.state} --> ${newStatus}`)
 
@@ -62,9 +66,6 @@ router.put('/', async (req, res) => {
         await getPostgresRepo().update({ rawid: id }, { state: newStatus })
         res.status(200).json({result: todoToUpdate.state})
     }
-
-    else
-        res.status(400).json({ errorMessage: validateUpdateErrorMessage })
 })
 
 router.delete('/', async (req, res) => {
@@ -125,10 +126,10 @@ router.get('/content', async (req, res) => {
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
     const persistenceMethod = req.query?.persistenceMethod
 
-    const errMessage = validateContentParams(statusFilter, sortBy, persistenceMethod)
+    const { valid, errorMessage } = validateContentParams(statusFilter, sortBy, persistenceMethod)
 
-    if (errMessage)
-        res.status(400).send(errMessage)
+    if (!valid)
+        res.status(400).send(errorMessage)
     
     else {
         const where = {}
