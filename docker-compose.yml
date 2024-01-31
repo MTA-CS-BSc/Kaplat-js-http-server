@@ -1,0 +1,10 @@
+version: "3"
+services:
+  postgres:
+    image: theshultz/kaplat-postgres-instance:latest
+    ports:
+      - "5432:5432"
+  mongo:
+    image: theshultz/kaplat-mongo-instance:latest
+    ports:
+      - "27017:27017"

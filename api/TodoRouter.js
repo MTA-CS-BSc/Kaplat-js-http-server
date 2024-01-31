@@ -1,106 +1,182 @@
 import { Router, json } from 'express'
-import TodosCollection from '../models/TodosCollection.js'
-import todoSchema from '../schemas/TodoSchema.js'
-import status from '../dicts/status.js'
-import { getNextId, resetId } from '../modules/IdGenerator.js'
-import { validateStatus, validateTodoSchemaAndDetails, validateContentParams, validateUpdateParams, validateTodoId } from '../validators/validators.js'
-import { getSortFunction, getStatusString } from '../modules/helpers.js'
+import {
+    validateStatus,
+    validateContentParams,
+    validateUpdateParams, validateCreateTodo
+} from '../validators/validators.js'
+import { getSortFunction } from '../modules/helpers.js'
 import todoLogger from '../logging/loggers/TodoLogger.js'
+import persistence from "../dicts/persistence.js";
+import todoSchema from "../modules/TodoSchema.js";
+import status from "../dicts/status.js";
+import {createMongoManager} from "../db/MongoManager.js";
+import {createPostgresManager} from "../db/PostgresManager.js";
 
-const todos = new TodosCollection()
 const router = Router()
 router.use(json())
+
+const { getRepo: getMongoRepo } = createMongoManager()
+const { getRepo: getPostgresRepo } = createPostgresManager()
 
 router.get('/health', (req, res) => {
     res.status(200).send('OK')
 })
 
-router.post('/', (req, res) => {
-    const id = getNextId()
+router.post('/', async (req, res) => {
+    const id = await getPostgresRepo().maximum('rawid').then(value => value + 1)
+    const { error, value } = todoSchema.validate({ rawid: id, state: status.PENDING, ...req.body})
+    value.duedate = value.dueDate
+    delete value.dueDate
 
-    const { error, value } = todoSchema.validate({id: id, status: status.PENDING, ...req.body})
+    const todos = await getMongoRepo().find()
+    const { valid, errorMessage } = validateCreateTodo({ error, value, todos })
 
-    if (validateTodoSchemaAndDetails({error, value, res, todos})) {
+    if (!valid) {
+        todoLogger.error(errorMessage)
+        res.status(409).json({errorMessage: errorMessage })
+    }
+
+    else {
         todoLogger.info(`Creating new TODO with Title [${req.body.title}]`)
-        todoLogger.debug(`Currently there are ${todos.size()} Todos in the system. New TODO will be assigned with id ${id}`)
-    
-        todos.push({...value})
+        todoLogger.debug(`Currently there are ${await getMongoRepo().count()} Todos in the system. New TODO will be assigned with id ${id}`)
+
+        await getMongoRepo().save(value)
+        await getPostgresRepo().save(value)
+
         res.status(200).json({result: id})
     }
 })
 
-router.put('/', (req, res) => {
-    const id = req.query?.id
+router.put('/', async (req, res) => {
+    const id = parseInt(req.query?.id)
     const newStatus = req.query?.status
+    const todos = await getMongoRepo().find()
 
     todoLogger.info(`Update TODO id [${id}] state to ${newStatus}`)
+    const { valid, errorMessage} = validateUpdateParams({todos, id, newStatus})
 
-    const { todo, oldStatusString } = validateUpdateParams({todos, id, newStatus, res})
-    
-    if (todo) {
-        todoLogger.debug(`Todo id [${id}] state change: ${oldStatusString} --> ${newStatus}`)
-        todo.status = status[newStatus]
-    
-        res.status(200).json({result: oldStatusString})
+    if (!valid)
+        res.status(400).json({ errorMessage: errorMessage })
+
+    else {
+        const todoToUpdate = await getMongoRepo().findOneBy({ rawid: id })
+        todoLogger.debug(`Todo id [${id}] state change: ${todoToUpdate.state} --> ${newStatus}`)
+
+        await getMongoRepo().update({ rawid: id }, { state: newStatus })
+        await getPostgresRepo().update({ rawid: id }, { state: newStatus })
+        res.status(200).json({result: todoToUpdate.state})
     }
 })
 
-router.delete('/all', (_, res) => {
-    todos.removeAll()
-    resetId()
-    res.status(200).json({ result: "OK" })
-})
-
-router.delete('/', (req, res) => {
-    const id = req.query?.id
+router.delete('/', async (req, res) => {
+    const id = parseInt(req.query?.id)
 
     if (!id)
-        res.status(400).send('Invalid id')
+        res.status(400).send('Error: Invalid id')
 
-    const todo = validateTodoId({res, id, todos})
-
-    if (todo) {
+    else {
         todoLogger.info(`Removing todo id ${id}`)
+        const todosAmountBeforeRemoval = await getMongoRepo().count()
+        await getMongoRepo().delete({ rawid: id })
+        await getPostgresRepo().delete({ rawid: id })
+        const todosAmountAfterRemoval = await getMongoRepo().count()
 
-        todos.remove(parseInt(id))
-        todoLogger.debug(`After removing todo id [${id}] there are ${todos.size()} TODOs in the system`)
-        
-        res.status(200).json({result: todos.size()})
+        if (todosAmountBeforeRemoval > todosAmountAfterRemoval) {
+            todoLogger.debug(`After removing todo id [${id}] there are ${todosAmountAfterRemoval} TODOs in the system`)
+            res.status(200).json({ result: todosAmountAfterRemoval })
+        }
+
+        else
+            res.status(404).json({ errorMessage: `Error: no such TODO with id ${id}`})
+
     }
 })
 
 router.get('/size', (req, res) => {
     const statusFilter = req.query?.status
-
-    if (!statusFilter || !validateStatus(statusFilter, true))
-        res.status(400).send('Status invalid')
+    const persistenceMethod = req.query?.persistenceMethod
+    
+    if (!persistenceMethod || !statusFilter || !validateStatus(statusFilter, true))
+        res.status(400).send('Parameters are invalid')
 
     else {
-        todoLogger.info(`Total TODOs count for state ${statusFilter} is ${todos.size(statusFilter)}`)
-        res.status(200).json({result: todos.size(statusFilter)})    
+        const where = {}
+
+        if (statusFilter !== 'ALL')
+            where.state = statusFilter
+
+        if (persistenceMethod === persistence.MONGO) {
+            getMongoRepo().countBy(where).then(amount => {
+                todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
+                res.status(200).json({ result: amount })
+            })
+        }
+
+        else {
+            getPostgresRepo().countBy(where).then(amount => {
+                todoLogger.info(`Total TODOs count for state ${statusFilter} is ${amount}`)
+                res.status(200).json({ result: amount })
+            })
+        }
     }
 })
 
-router.get('/content', (req, res) => {
-    const filter = req.query?.status
+router.get('/content', async (req, res) => {
+    const statusFilter = req.query?.status
     const sortBy = req.query?.sortBy ? req.query.sortBy : ''
+    const persistenceMethod = req.query?.persistenceMethod
 
-    const errMessage = validateContentParams(filter, sortBy)
+    const { valid, errorMessage } = validateContentParams(statusFilter, sortBy, persistenceMethod)
 
-    if (!errMessage) {
-        todoLogger.info(`Extracting todos content. Filter: ${filter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
-        
-        const filtered = [...todos.get(filter)]
-        todoLogger.debug(`There are a total of ${todos.size()} todos in the system. The result holds ${filtered.length} todos`)
-        
-        res.status(200).json({result: filtered.reduce((res, item) => {
-            res.push({...item, status: getStatusString(item.status)})
-            return res
-        }, []).sort(getSortFunction(sortBy))})
-    }  
+    if (!valid)
+        res.status(400).send(errorMessage)
     
-    else
-        res.status(400).send(errMessage)
+    else {
+        const where = {}
+
+        if (statusFilter !== 'ALL')
+            where.state = statusFilter
+
+        todoLogger.info(`Extracting todos content. Filter: ${statusFilter} | Sorting by: ${sortBy ? sortBy: 'ID'}`)
+
+        if (persistenceMethod === persistence.MONGO) {
+            const totalAmountTodos = await getMongoRepo().count()
+
+            getMongoRepo().find({ where: where }).then(todos => {
+                todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
+                res.status(200).json({
+                    result: todos.map(item => {
+                        return {
+                            id: item.rawid,
+                            title: item.title,
+                            content: item.content,
+                            dueDate: item.duedate,
+                            status: item.state
+                        }
+                    }).sort(getSortFunction(sortBy))
+                })
+            })
+        }
+
+        else {
+            const totalAmountTodos = await getPostgresRepo().count()
+
+            getPostgresRepo().findBy(where).then(todos => {
+                todoLogger.debug(`There are a total of ${totalAmountTodos} todos in the system. The result holds ${todos.length} todos`)
+                res.status(200).json({
+                    result: todos.map(item => {
+                        return {
+                            id: item.rawid,
+                            title: item.title,
+                            content: item.content,
+                            dueDate: item.duedate,
+                            status: item.state
+                        }
+                    }).sort(getSortFunction(sortBy))
+                })
+            })
+        }
+    }
 })
 
 export default router
